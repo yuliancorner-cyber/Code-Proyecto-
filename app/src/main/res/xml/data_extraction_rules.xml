@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Reglas de copia de seguridad para Android 12 y posteriores.
+     cloud-backup  = respaldo en la nube de Google.
+     device-transfer = pasar los datos a un celular nuevo. -->
+<data-extraction-rules>
+    <cloud-backup />
+    <device-transfer />
+</data-extraction-rules>

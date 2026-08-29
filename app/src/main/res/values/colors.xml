@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Color de fondo de la ventana ANTES de que Compose dibuje.
+         Sirve para que no haya un destello blanco al abrir la app. -->
+    <color name="fondo_ventana">#F8FAFC</color>
+
+    <!-- Fondo del icono de la app. -->
+    <color name="ic_launcher_background">#0F172A</color>
+</resources>

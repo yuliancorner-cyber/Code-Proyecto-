@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dibujo vectorial del candado que se ve en el icono de la app.
+     El lienzo es de 108x108; la parte visible garantizada (zona segura)
+     es solo el circulo central de unos 72x72, por eso el candado va al centro. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Arco superior del candado -->
+    <path
+        android:strokeColor="#4ADE80"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M45,52 V45 a9,9 0 0 1 18,0 V52" />
+
+    <!-- Cuerpo del candado -->
+    <path
+        android:fillColor="#4ADE80"
+        android:pathData="M42,52 h24 a5,5 0 0 1 5,5 v18 a5,5 0 0 1 -5,5 h-24 a5,5 0 0 1 -5,-5 v-18 a5,5 0 0 1 5,-5 z" />
+
+    <!-- Ojo de la cerradura (del color del fondo, para que se vea calado) -->
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M54,60 m-3.5,0 a3.5,3.5 0 1 0 7,0 a3.5,3.5 0 1 0 -7,0 z" />
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M52.5,63 h3 v8 h-3 z" />
+</vector>

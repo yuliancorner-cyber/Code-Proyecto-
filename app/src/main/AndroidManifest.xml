@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ============================================================
+         PERMISOS
+         Declararlos aqui NO los concede: solo dice "esta app los usara".
+         Los peligrosos (camara, notificaciones) se piden ademas en
+         tiempo de ejecucion con un dialogo. Los "especiales" (uso de apps,
+         accesibilidad, no molestar) los activas TU a mano en Ajustes.
+         ============================================================ -->
+
+    <!-- Camara: para ver el escritorio y colocar la zona de enfoque (Fase 1 y 2). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Mostrar la notificacion permanente de "sesion activa" (Android 13+). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Servicio en primer plano: mantiene el cronometro vivo con la pantalla apagada. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!-- Evita que el sistema duerma los sensores durante la sesion. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Vibrar al detectar que levantaste el celular antes de tiempo. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- FASE 3: saber que app esta en pantalla para bloquear las distractoras.
+         Es un permiso "especial": se activa a mano en
+         Ajustes > Apps > Acceso especial > Acceso a datos de uso. -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!-- ============================================================
+         CARACTERISTICAS DE HARDWARE
+         required="false" = la app se instala aunque el celular no las tenga.
+         ============================================================ -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.FocusZone">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.FocusZone"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity">
+
+            <!-- Este bloque es lo que hace que la app aparezca en el menu de aplicaciones. -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- La carpeta "values-night" se usa automaticamente cuando el celular
+     esta en modo oscuro. -->
+<resources>
+    <color name="fondo_ventana">#0F172A</color>
+</resources>

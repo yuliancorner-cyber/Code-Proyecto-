@@ -1,0 +1,16 @@
+# --- Archivos generados por Android Studio / Gradle ---
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+*.apk
+*.aab
+*.keystore
+!debug.keystore

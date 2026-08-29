@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Todos los textos visibles de la app viven aqui, no dentro del codigo.
+     Asi se cambian sin tocar Kotlin (y se podrian traducir facilmente). -->
+<resources>
+    <string name="app_name">FocusZone</string>
+
+    <!-- Pantalla de bienvenida (Fase 0) -->
+    <string name="bienvenida_lema">Deja el celular boca abajo y gana tiempo de pantalla.</string>
+    <string name="bienvenida_estado_fase">Fase 0 lista: el entorno funciona.</string>
+
+    <!-- Textos que ya usaremos en la Fase 1 (los dejo declarados desde ya) -->
+    <string name="guia_colocar_zona">Coloca tu celular boca abajo dentro de la zona para empezar.</string>
+    <string name="boton_iniciar_sesion">Iniciar sesion</string>
+    <string name="sesion_activa">Sesion activa</string>
+    <string name="ganando_tiempo">Ganando tiempo de pantalla…</string>
+    <string name="alerta_trampa">No se permite el celular — aun no terminas, vuelve al trabajo</string>
+</resources>

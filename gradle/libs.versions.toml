@@ -1,0 +1,49 @@
+# CATALOGO DE VERSIONES
+# ---------------------
+# Un "catalogo de versiones" es simplemente una lista central de las librerias
+# que usa el proyecto y de que version usamos de cada una. En vez de escribir
+# numeros de version sueltos por todos lados, se escriben aqui una sola vez.
+# Luego, en app/build.gradle.kts, se referencian como libs.algo.algo
+
+[versions]
+# AGP = Android Gradle Plugin: el plugin que sabe compilar apps Android.
+agp = "8.7.3"
+# Lenguaje Kotlin.
+kotlin = "2.0.21"
+# Librerias base de AndroidX.
+coreKtx = "1.15.0"
+lifecycleRuntimeKtx = "2.8.7"
+activityCompose = "1.9.3"
+# BOM = "Bill of Materials": fija de golpe versiones compatibles entre si
+# de TODAS las librerias de Jetpack Compose, para que no choquen.
+composeBom = "2024.12.01"
+# Librerias de pruebas.
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+
+# Ojo: las librerias de Compose NO llevan version propia; la hereda del BOM.
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+# Desde Kotlin 2.0 el compilador de Compose viene como plugin aparte.
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

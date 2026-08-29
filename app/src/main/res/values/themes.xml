@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema "clasico" de la ventana de Android. Compose aplica su propio tema
+         por encima; este solo controla el instante previo a que Compose dibuje.
+         NoActionBar = sin la barra de titulo antigua. -->
+    <style name="Theme.FocusZone" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/fondo_ventana</item>
+    </style>
+</resources>
