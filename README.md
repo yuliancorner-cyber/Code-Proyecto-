@@ -12,76 +12,88 @@ pierdes la recompensa. Al completar la sesión ganas créditos de "tiempo de pan
 
 ---
 
-## Estado actual: Fase 0 (entorno) ✅
+## Estado actual: Fase 1 (MVP) — lista para probar
 
-La app compila, se instala y abre una pantalla de bienvenida. Todavía **no** hace nada
-funcional: no hay cámara, ni sensores, ni cronómetro. Eso es la Fase 1.
+Se puede usar a diario: eliges una meta, dejas el celular boca abajo, corre el
+cronómetro, y si lo levantas antes de tiempo te avisa y pierdes la recompensa.
 
 ### Hoja de ruta
 
 | Fase | Qué incluye | Estado |
 |---|---|---|
 | 0 | Proyecto Kotlin + Compose que compila e instala | ✅ Hecho |
-| 1 | MVP: zona simple sobre la cámara, detección boca-abajo por sensores, cronómetro, pantalla de bloqueo, créditos en Room | Pendiente |
+| 1 | MVP: zona simple sobre la cámara, detección boca-abajo por sensores, cronómetro, pantalla de bloqueo, créditos en Room | 🧪 Por probar |
 | 2 | Zona AR real con ARCore (colocar, arrastrar, redimensionar, rotar) | Pendiente |
 | 3 | Silenciar notificaciones y bloquear apps distractoras | Pendiente |
 | 4 | Historial de sesiones y estadísticas de créditos | Pendiente |
 | 5 | Ícono, splash, modo oscuro, APK final | Pendiente |
 
+### Reglas de una sesión
+
+| Regla | Valor |
+|---|---|
+| Metas disponibles | 15, 25, 45 o 60 min |
+| Recompensa | 1 min de pantalla por cada 5 de estudio (25 min → +5 min) |
+| Para arrancar | Boca abajo y quieto durante 2 s |
+| Para dar la alerta | Fuera de posición durante 0,7 s (un golpe a la mesa no cuenta) |
+| Tolerancia | 5 s para volver a dejarlo; si no, se cancela sin créditos |
+| Durante la alerta | El cronómetro se pausa |
+
+**Limitación honesta:** con el celular boca abajo la cámara no ve nada (la trasera
+apunta al techo), así que la zona sirve para *colocarlo*, y lo que vigila la sesión
+son los sensores. En la Fase 1 la zona es una guía fija en pantalla; en la Fase 2
+quedará anclada al escritorio con ARCore.
+
 ---
 
-## Cómo probar la Fase 0
+## Cómo actualizar tu copia (cada vez que haya una fase nueva)
 
-### 1. ¿Tienes Android Studio?
+En Android Studio: menú **Git › Pull…** (o el botón ↙ azul de arriba) y acepta.
+Descarga los cambios de GitHub. Luego **Run ▶**.
 
-Ábrelo desde el menú de aplicaciones de tu PC. Si no aparece, descárgalo gratis desde
-<https://developer.android.com/studio> e instálalo con las opciones por defecto
-(el instalador descarga solo el SDK de Android que hace falta).
+## Cómo probar la Fase 1
 
-Necesitas la versión **Ladybug (2024.2)** o posterior para que entienda este proyecto
-sin quejarse.
+### Antes de empezar (solo una vez, en el Xiaomi)
 
-### 2. Abrir el proyecto
+MIUI/HyperOS mata los servicios en segundo plano para ahorrar batería. Para que
+la sesión no se corte con la pantalla apagada:
 
-`File > Open…` y selecciona la **carpeta raíz** de este repositorio (la que contiene
-`settings.gradle.kts`). **No** abras la carpeta `app`.
+**Ajustes › Aplicaciones › Administrar aplicaciones › FocusZone › Ahorro de batería
+› Sin restricciones.** En la misma pantalla, activa también **Inicio automático**.
 
-Android Studio hará el "Gradle Sync" (descarga las librerías). La primera vez tarda
-varios minutos y necesita internet. Si te ofrece actualizar el Android Gradle Plugin,
-puedes aceptar; si algo se rompe, avísame y lo revisamos.
+### Recorrido de prueba
 
-### 3. Preparar el celular
+1. Abre la app. Acepta el permiso de **cámara**: verás el escritorio con un
+   rectángulo punteado encima.
+2. Elige **15 min** y pulsa **Iniciar sesión**. Acepta el permiso de
+   **notificaciones**.
+3. Deja el celular **boca abajo** sobre la mesa. La zona se pone verde
+   (*¡Detectado!*) y a los 2 s arranca el cronómetro, sin vibrar. Si lo volteas
+   solo un instante (menos de 1 s) alcanzas a ver *Sesión activa* con el candado,
+   el anillo y el cronómetro. Si lo mantienes levantado, salta la alerta (paso 4).
+4. **Prueba la trampa:** levántalo. Vibra fuerte y aparece la pantalla ámbar
+   *"No se permite el celular — aún no terminas, vuelve al trabajo"* con cuenta
+   atrás de 5. Déjalo boca abajo antes del 0: la sesión sigue.
+5. **Prueba la cancelación:** levántalo y espera a que llegue a 0 → *Sesión
+   cancelada*, sin créditos.
+6. **Prueba completarla:** una sesión de 15 min sin tocarlo → vibración doble,
+   *¡Sesión completada! +3 min*.
+7. **Prueba que se guarda:** cierra la app del todo (deslízala fuera de
+   recientes) y ábrela: arriba debe seguir el *Tiempo de pantalla ganado*.
 
-1. Ajustes > Acerca del teléfono > toca **7 veces** "Número de compilación".
-   Aparece el mensaje "Ya eres desarrollador".
-2. Ajustes > Sistema > **Opciones de desarrollador** > activa **Depuración por USB**.
-3. Conecta el celular por USB y acepta el diálogo *"¿Permitir la depuración USB?"*.
+### Pruebas automáticas
 
-Si no tienes cable a mano, en Opciones de desarrollador existe **Depuración inalámbrica**;
-en Android Studio se usa con `Device Manager > Pair using Wi-Fi`.
+La lógica de sesión tiene 16 pruebas que corren en el PC sin celular. En Android
+Studio: panel izquierdo › `app/java/com.focuszone.app (test)/logica` › clic
+derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 16 en verde.
 
-### 4. Instalar y ejecutar
+### Si la detección es demasiado sensible (o poco)
 
-Elige tu celular en el desplegable de dispositivos (arriba, junto al botón ▶) y pulsa
-**Run ▶**.
+Los umbrales están al principio de dos archivos, con comentarios:
 
-### Qué deberías ver
-
-Una pantalla con fondo oscuro (o claro, según el tema de tu celular), un círculo con
-un candado verde, el título **FocusZone**, la frase *"Deja el celular boca abajo y gana
-tiempo de pantalla."* y abajo, en verde, *"Fase 0 lista: el entorno funciona."*
-
-En el menú de aplicaciones debe aparecer el ícono de un candado verde sobre fondo azul
-oscuro, con el nombre **FocusZone**.
-
-Si ves eso, la Fase 0 está aprobada.
-
-### Sin conectar el celular
-
-También puedes ver la pantalla dentro de Android Studio: abre
-`app/src/main/java/com/focuszone/app/ui/PantallaBienvenida.kt` y pulsa **Split** o
-**Design** arriba a la derecha. Verás dos vistas previas (tema oscuro y claro).
-Esto no prueba que la app se instale, pero confirma que el código compila.
+- `logica/DetectorPosicion.kt` → `umbralMovimiento` (1.5 m/s²). Súbelo si te da
+  alertas falsas al escribir sobre la mesa.
+- `logica/MotorSesion.kt` → `Reglas` (tiempos de arranque, confirmación y tolerancia).
 
 ---
 
@@ -90,28 +102,33 @@ Esto no prueba que la app se instale, pero confirma que el código compila.
 ```
 settings.gradle.kts          Qué módulos hay y de dónde bajar las librerías
 build.gradle.kts             Compilación raíz (solo declara plugins)
-gradle.properties            Ajustes de Gradle (memoria, AndroidX)
 gradle/libs.versions.toml    ← TODAS las versiones de librerías viven aquí
-gradlew / gradlew.bat        Lanzador de Gradle (no hace falta instalarlo aparte)
 
-app/
-  build.gradle.kts           Configuración de la app: minSdk, permisos de compilación, dependencias
-  src/main/
-    AndroidManifest.xml      Permisos y declaración de pantallas
-    java/com/focuszone/app/
-      MainActivity.kt        Punto de entrada: la pantalla que abre Android
-      ui/
-        PantallaBienvenida.kt   Pantalla actual (Fase 0)
-        theme/
-          Color.kt           Paleta de colores
-          Theme.kt           Tema claro/oscuro
-          Type.kt            Tamaños de letra
-    res/
-      values/                Textos (strings.xml), colores y tema base
-      values-night/          Variantes para modo oscuro
-      drawable/              Dibujo vectorial del candado del ícono
-      mipmap-anydpi-v26/     Ícono adaptativo de la app
-      xml/                   Reglas de copia de seguridad
+app/src/main/java/com/focuszone/app/
+  MainActivity.kt            Punto de entrada
+  logica/                    Reglas puras, sin Android (probadas con tests)
+    Recompensa.kt              Metas y fórmula de créditos
+    EstadoSesion.kt            Los 6 estados posibles de una sesión
+    DetectorPosicion.kt        Acelerómetro → "boca abajo y quieto"
+    MotorSesion.kt             Máquina de estados: arranque, alerta, cancelación, meta
+  sesion/
+    ServicioSesion.kt          Servicio en primer plano: sensores, cronómetro, vibración, guardar
+    SesionActual.kt            Puente servicio ↔ pantallas
+  datos/                     Base de datos Room
+    SesionRegistro.kt          Tabla "sesiones"
+    SesionDao.kt               Consultas (insertar, total de créditos)
+    BaseDatos.kt               El archivo focuszone.db
+  ui/
+    AppFocusZone.kt            Elige qué pantalla mostrar según el estado
+    PantallaInicio.kt          Cámara + zona + elegir meta
+    PantallaSesion.kt          Candado, anillo y cronómetro
+    PantallaAlerta.kt          "No se permite el celular" + cuenta atrás
+    PantallaResultado.kt       Completada / cancelada
+    componentes/               Cámara, zona, anillo, utilidades
+    theme/                     Colores, tema claro/oscuro, tipografía
+
+app/src/test/.../logica/     Pruebas automáticas de la lógica
+app/src/main/res/            Textos (strings.xml), colores, íconos
 ```
 
 ### Vocabulario rápido
@@ -124,6 +141,12 @@ app/
   (marcadas con `@Composable`) en vez de archivos XML de diseño.
 - **Manifest**: el "documento de identidad" de la app — nombre, ícono, permisos, pantallas.
 - **APK**: el archivo instalable de la app.
+- **Servicio en primer plano**: código que sigue corriendo con la pantalla apagada,
+  a cambio de mostrar una notificación fija.
+- **Room**: la base de datos local; guarda las sesiones en el propio celular.
+- **Máquina de estados**: lógica que siempre está en *un* estado (esperando, en curso,
+  alerta…) y solo cambia por reglas concretas.
+- **Acelerómetro**: sensor que mide la gravedad y los movimientos en 3 ejes.
 
 ---
 

@@ -17,6 +17,13 @@ activityCompose = "1.9.3"
 # BOM = "Bill of Materials": fija de golpe versiones compatibles entre si
 # de TODAS las librerias de Jetpack Compose, para que no choquen.
 composeBom = "2024.12.01"
+# KSP = generador de codigo que usa Room. Su version SIEMPRE empieza por la
+# version de Kotlin (2.0.21-...): si algun dia actualizas Kotlin, actualiza esta tambien.
+ksp = "2.0.21-1.0.28"
+# Room = base de datos local (guarda sesiones y creditos en el celular).
+room = "2.6.1"
+# CameraX = libreria oficial para usar la camara de forma sencilla.
+camerax = "1.4.1"
 # Librerias de pruebas.
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -26,6 +33,15 @@ espressoCore = "3.6.1"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
+
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 
 # Ojo: las librerias de Compose NO llevan version propia; la hereda del BOM.
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -47,3 +63,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 # Desde Kotlin 2.0 el compilador de Compose viene como plugin aparte.
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

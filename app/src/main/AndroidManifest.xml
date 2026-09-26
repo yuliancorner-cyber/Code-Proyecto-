@@ -54,6 +54,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:label="@string/app_name"
             android:theme="@style/Theme.FocusZone"
             android:screenOrientation="portrait"
@@ -65,6 +66,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Servicio que vigila la sesion con la pantalla apagada.
+             specialUse = tipo de servicio en primer plano "de uso especial",
+             obligatorio declararlo desde Android 14, con una explicacion. -->
+        <service
+            android:name=".sesion.ServicioSesion"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Temporizador de sesion de estudio que vigila el acelerometro para detectar si el usuario levanta el celular" />
+        </service>
 
     </application>
 

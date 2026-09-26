@@ -1,17 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Todos los textos visibles de la app viven aqui, no dentro del codigo.
-     Asi se cambian sin tocar Kotlin (y se podrian traducir facilmente). -->
+     %1$d = numero entero que se rellena desde el codigo; %1$s = texto. -->
 <resources>
     <string name="app_name">FocusZone</string>
 
-    <!-- Pantalla de bienvenida (Fase 0) -->
-    <string name="bienvenida_lema">Deja el celular boca abajo y gana tiempo de pantalla.</string>
-    <string name="bienvenida_estado_fase">Fase 0 lista: el entorno funciona.</string>
-
-    <!-- Textos que ya usaremos en la Fase 1 (los dejo declarados desde ya) -->
+    <!-- Pantalla de inicio -->
     <string name="guia_colocar_zona">Coloca tu celular boca abajo dentro de la zona para empezar.</string>
-    <string name="boton_iniciar_sesion">Iniciar sesion</string>
-    <string name="sesion_activa">Sesion activa</string>
+    <string name="creditos_totales">Tiempo de pantalla ganado: %1$d min</string>
+    <string name="meta_titulo">Meta de estudio</string>
+    <string name="minutos_corto">%1$d min</string>
+    <string name="recompensa_meta">Recompensa al completarla: +%1$d min de pantalla</string>
+    <string name="boton_iniciar_sesion">Iniciar sesión</string>
+    <string name="sin_permiso_camara">Sin permiso de cámara: la zona se muestra sobre fondo negro. Puedes activarlo en Ajustes › Apps › FocusZone › Permisos.</string>
+
+    <!-- Esperando a que se deje el celular -->
+    <string name="esperando_colocar">Ahora deja el celular boca abajo dentro de la zona</string>
+    <string name="esperando_detectado">¡Detectado! Mantenlo quieto…</string>
+    <string name="minutos_meta_elegida">Meta: %1$d min</string>
+    <string name="cancelar">Cancelar</string>
+
+    <!-- Sesion activa -->
+    <string name="sesion_activa">Sesión activa</string>
+    <string name="de_meta">de %1$s</string>
     <string name="ganando_tiempo">Ganando tiempo de pantalla…</string>
-    <string name="alerta_trampa">No se permite el celular — aun no terminas, vuelve al trabajo</string>
+    <string name="al_completar">+%1$d min de pantalla al completar</string>
+    <string name="abandonar">Abandonar sesión</string>
+
+    <!-- Alerta -->
+    <string name="alerta_trampa">No se permite el celular — aún no terminas, vuelve al trabajo</string>
+    <string name="alerta_reanudar">Déjalo boca abajo para reanudar</string>
+    <string name="alerta_llevas">Llevas %1$s estudiados</string>
+
+    <!-- Resultado -->
+    <string name="completada_titulo">¡Sesión completada!</string>
+    <string name="completada_ganaste">+%1$d min de pantalla</string>
+    <string name="completada_total">Total acumulado: %1$d min</string>
+    <string name="cancelada_titulo">Sesión cancelada</string>
+    <string name="cancelada_levantado">Levantaste el celular y no lo volviste a dejar a tiempo.</string>
+    <string name="cancelada_abandono">Abandonaste la sesión antes de la meta.</string>
+    <string name="cancelada_detalle">Estudiaste %1$s, pero esta vez no ganas créditos.</string>
+    <string name="volver">Volver</string>
+
+    <!-- Notificaciones -->
+    <string name="notif_canal_sesion">Sesión de estudio</string>
+    <string name="notif_canal_resultados">Resultados de sesión</string>
+    <string name="notif_en_curso">Meta: %1$d min · el celular debe quedarse boca abajo</string>
+    <string name="notif_alerta_titulo">¡Vuelve a dejar el celular boca abajo!</string>
 </resources>

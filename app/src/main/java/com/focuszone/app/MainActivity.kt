@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.focuszone.app.ui.PantallaBienvenida
+import com.focuszone.app.ui.AppFocusZone
 import com.focuszone.app.ui.theme.FocusZoneTheme
 
 /**
@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
         // setContent es donde le decimos a Compose QUE dibujar.
         setContent {
             FocusZoneTheme {
-                PantallaBienvenida()
+                AppFocusZone()
             }
         }
     }

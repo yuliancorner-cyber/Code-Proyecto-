@@ -16,6 +16,7 @@ val RojoCancelado = Color(0xFFF87171)     // sesion cancelada
 
 // --- Tema claro ---
 val VerdeClaro = Color(0xFF15803D)
+val VerdeMenta = Color(0xFFDCFCE7)       // fondo suave de acento (circulo del candado)
 val FondoClaro = Color(0xFFF8FAFC)
 val SuperficieClara = Color(0xFFFFFFFF)
 val GrisTextoOscuro = Color(0xFF0F172A)

@@ -29,6 +29,9 @@ private val EsquemaOscuro = darkColorScheme(
 private val EsquemaClaro = lightColorScheme(
     primary = VerdeClaro,
     onPrimary = SuperficieClara,
+    // Sin esto, Material usaba su lila por defecto (el circulo de la Fase 0).
+    primaryContainer = VerdeMenta,
+    onPrimaryContainer = VerdeClaro,
     background = FondoClaro,
     onBackground = GrisTextoOscuro,
     surface = SuperficieClara,
