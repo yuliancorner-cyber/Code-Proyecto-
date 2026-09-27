@@ -53,11 +53,14 @@ import com.focuszone.app.logica.Recompensa
 import com.focuszone.app.ui.componentes.MantenerPantallaEncendida
 import com.focuszone.app.ui.componentes.VistaCamara
 import com.focuszone.app.ui.componentes.ZonaEnfoque
+import com.focuszone.app.ui.theme.VerdeEnfoque
 
 // Paneles oscuros translucidos: se leen bien sobre cualquier imagen de camara.
 private val FondoPanel = Color.Black.copy(alpha = 0.6f)
 private val TextoPanel = Color.White
 private val TextoPanelSuave = Color.White.copy(alpha = 0.75f)
+// Los paneles son siempre oscuros: usamos el verde brillante en ambos temas.
+private val AcentoPanel = VerdeEnfoque
 
 /**
  * Pantalla principal: camara con la zona de enfoque encima.
@@ -128,20 +131,28 @@ fun PantallaInicio(
             )
         }
 
-        ZonaEnfoque(
-            detectado = esperando?.enPosicion == true,
-            colorDetectado = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.fillMaxSize()
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .systemBarsPadding()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(16.dp)
         ) {
             PanelSuperior(totalCreditosMin)
+
+            // La zona ocupa solo el hueco libre entre los dos paneles
+            // (weight = "todo el espacio que sobre"), asi nunca queda tapada.
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+            ) {
+                ZonaEnfoque(
+                    detectado = esperando?.enPosicion == true,
+                    colorDetectado = AcentoPanel,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
             if (esperando == null) {
                 PanelElegirMeta(
@@ -170,13 +181,13 @@ private fun PanelSuperior(totalCreditosMin: Int) {
                 Icon(
                     imageVector = Icons.Filled.Lock,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = AcentoPanel,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
                     text = stringResource(R.string.creditos_totales, totalCreditosMin),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = AcentoPanel,
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -268,7 +279,7 @@ private fun PanelEsperando(esperando: EstadoSesion.Esperando, onCancelar: () -> 
             Icon(
                 imageVector = Icons.Filled.Smartphone,
                 contentDescription = null,
-                tint = if (esperando.enPosicion) MaterialTheme.colorScheme.primary else TextoPanel,
+                tint = if (esperando.enPosicion) AcentoPanel else TextoPanel,
                 modifier = Modifier.size(40.dp)
             )
             Spacer(Modifier.height(12.dp))
@@ -276,7 +287,7 @@ private fun PanelEsperando(esperando: EstadoSesion.Esperando, onCancelar: () -> 
                 text = stringResource(
                     if (esperando.enPosicion) R.string.esperando_detectado else R.string.esperando_colocar
                 ),
-                color = if (esperando.enPosicion) MaterialTheme.colorScheme.primary else TextoPanel,
+                color = if (esperando.enPosicion) AcentoPanel else TextoPanel,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )

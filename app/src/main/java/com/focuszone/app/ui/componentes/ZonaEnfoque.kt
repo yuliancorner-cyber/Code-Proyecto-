@@ -19,7 +19,8 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Dibuja la "zona de enfoque": un rectangulo con borde discontinuo del tamano
- * aproximado de un celular, centrado en la pantalla, con un borde que "respira".
+ * aproximado de un celular, centrado en el espacio que se le da, con un borde
+ * que "respira".
  *
  * FASE 1: es una guia visual fija sobre la imagen de la camara, no esta
  * anclada al escritorio real. En la Fase 2 la reemplazaremos por una zona AR
@@ -47,8 +48,14 @@ fun ZonaEnfoque(
 
     Canvas(modifier = modifier) {
         // Proporcion de un celular tipico (unas 2 veces mas alto que ancho).
-        val ancho = size.width * 0.46f
-        val alto = (ancho * 2.05f).coerceAtMost(size.height * 0.55f)
+        // Si no cabe a lo alto, se encoge entera manteniendo la proporcion.
+        val proporcion = 2.05f
+        var ancho = size.width * 0.46f
+        var alto = ancho * proporcion
+        if (alto > size.height) {
+            alto = size.height
+            ancho = alto / proporcion
+        }
         val esquina = Offset((size.width - ancho) / 2f, (size.height - alto) / 2f)
         val tamano = Size(ancho, alto)
         val radio = CornerRadius(28.dp.toPx())

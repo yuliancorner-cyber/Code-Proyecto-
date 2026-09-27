@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.media.AudioAttributes
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -17,6 +18,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
 import android.os.SystemClock
+import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -362,7 +364,26 @@ class ServicioSesion : Service(), SensorEventListener {
         } else {
             getSystemService(Vibrator::class.java)
         }
+        if (!vibrador.hasVibrator()) return
+
         // -1 = no repetir el patron
-        vibrador.vibrate(VibrationEffect.createWaveform(patron, -1))
+        val efecto = VibrationEffect.createWaveform(patron, -1)
+
+        // Marcamos la vibracion como de ALARMA. Sin esto, Android la trata como
+        // "generica" y algunos celulares (p. ej. Xiaomi) la silencian en modo
+        // silencio o No molestar, que es justo como se suele estudiar.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vibrador.vibrate(
+                efecto,
+                VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM)
+            )
+        } else {
+            val atributos = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+            @Suppress("DEPRECATION")
+            vibrador.vibrate(efecto, atributos)
+        }
     }
 }
