@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Configuracion del servicio de accesibilidad.
+     - accessibilityEventTypes: SOLO el aviso "cambio la ventana principal".
+     - canRetrieveWindowContent="false": NO puede leer el contenido de la
+       pantalla (textos, botones, lo que escribes).
+     - description: el texto que ves en Ajustes > Accesibilidad al activarlo. -->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:canRetrieveWindowContent="false"
+    android:description="@string/accesibilidad_descripcion"
+    android:notificationTimeout="100" />

@@ -46,4 +46,24 @@
     <string name="notif_canal_resultados">Resultados de sesión</string>
     <string name="notif_en_curso">Meta: %1$d min · el celular debe quedarse boca abajo</string>
     <string name="notif_alerta_titulo">¡Vuelve a dejar el celular boca abajo!</string>
+
+    <!-- Bloqueo de apps (Fase 3) -->
+    <string name="inicio_bloqueo_activo">Bloqueando %1$d apps durante la sesión</string>
+    <string name="inicio_bloqueo_configurar">Bloqueo de apps sin configurar: toca ⚙</string>
+    <string name="boton_config_bloqueo">Configurar bloqueo de apps</string>
+    <string name="bloqueo_titulo">Bloqueo de apps</string>
+    <string name="bloqueo_permisos">Permisos</string>
+    <string name="permiso_accesibilidad_titulo">Servicio de accesibilidad</string>
+    <string name="permiso_accesibilidad_desc">Detecta cuándo abres una app bloqueada durante la sesión y te devuelve a FocusZone. Solo ve qué app se abre: no lee la pantalla ni lo que escribes.</string>
+    <string name="ayuda_accesibilidad">En Accesibilidad busca «Apps descargadas» o «Servicios instalados» › FocusZone › actívalo. Si aparece gris o dice «Ajuste restringido»: Ajustes › Aplicaciones › FocusZone › ⋮ (arriba a la derecha) › «Permitir ajustes restringidos», y vuelve a intentarlo.</string>
+    <string name="permiso_nomolestar_titulo">Acceso a No molestar</string>
+    <string name="permiso_nomolestar_desc">Silencia las notificaciones mientras estudias y las devuelve al terminar. Las alarmas siguen sonando.</string>
+    <string name="permiso_activado">Activado</string>
+    <string name="permiso_activar">Activar</string>
+    <string name="bloqueo_apps_titulo">Apps distractoras (%1$d marcadas)</string>
+    <string name="bloqueo_apps_desc">Se bloquean mientras haya una sesión en marcha. Ajustes y el teléfono nunca se bloquean.</string>
+    <string name="app_sugerida">Sugerida</string>
+    <string name="bloqueo_aviso">%1$s está bloqueada: estás en una sesión de estudio</string>
+    <string name="accesibilidad_etiqueta">FocusZone: bloqueo de apps</string>
+    <string name="accesibilidad_descripcion">FocusZone usa este servicio solo para detectar cuándo abres una app que marcaste como distractora durante una sesión de estudio, y devolverte a la sesión. No lee el contenido de la pantalla ni lo que escribes.</string>
 </resources>

@@ -25,6 +25,16 @@ object SesionActual {
     private val _estado = MutableStateFlow<EstadoSesion>(EstadoSesion.Inactivo)
     val estado: StateFlow<EstadoSesion> = _estado.asStateFlow()
 
+    /**
+     * true mientras hay una sesion en marcha (esperando, en curso o en alerta).
+     * El servicio de bloqueo lo consulta para decidir si bloquea una app.
+     */
+    val bloqueoActivo: Boolean
+        get() = when (_estado.value) {
+            is EstadoSesion.Esperando, is EstadoSesion.EnCurso, is EstadoSesion.Alerta -> true
+            else -> false
+        }
+
     /** Solo lo llama el servicio. */
     internal fun publicar(nuevo: EstadoSesion) {
         _estado.value = nuevo

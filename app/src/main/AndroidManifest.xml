@@ -26,12 +26,19 @@
     <!-- Vibrar al detectar que levantaste el celular antes de tiempo. -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
-    <!-- FASE 3: saber que app esta en pantalla para bloquear las distractoras.
-         Es un permiso "especial": se activa a mano en
-         Ajustes > Apps > Acceso especial > Acceso a datos de uso. -->
-    <uses-permission
-        android:name="android.permission.PACKAGE_USAGE_STATS"
-        tools:ignore="ProtectedPermissions" />
+    <!-- Activar/quitar No molestar durante la sesion. Ademas de declararlo, hay
+         que concederlo a mano en Ajustes > Acceso a No molestar. -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+
+    <!-- Desde Android 11 una app no "ve" las demas apps instaladas salvo que
+         declare cuales le interesan. Aqui: las que salen en el menu de apps,
+         para poder listarlas y elegir las distractoras. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
 
     <!-- ============================================================
          CARACTERISTICAS DE HARDWARE
@@ -77,6 +84,22 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Temporizador de sesion de estudio que vigila el acelerometro para detectar si el usuario levanta el celular" />
+        </service>
+
+        <!-- Servicio de accesibilidad que bloquea las apps distractoras.
+             El permiso BIND_ACCESSIBILITY_SERVICE garantiza que SOLO Android
+             puede conectarse a el. Se activa a mano en Ajustes > Accesibilidad. -->
+        <service
+            android:name=".bloqueo.ServicioBloqueo"
+            android:exported="true"
+            android:label="@string/accesibilidad_etiqueta"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/config_bloqueo" />
         </service>
 
     </application>

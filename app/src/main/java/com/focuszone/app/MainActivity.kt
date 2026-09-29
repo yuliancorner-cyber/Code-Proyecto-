@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.focuszone.app.bloqueo.ModoSilencio
+import com.focuszone.app.logica.EstadoSesion
+import com.focuszone.app.sesion.SesionActual
 import com.focuszone.app.ui.AppFocusZone
 import com.focuszone.app.ui.theme.FocusZoneTheme
 
@@ -22,6 +25,13 @@ class MainActivity : ComponentActivity() {
         // Dibuja la app tambien detras de la barra de estado y la de navegacion,
         // para que se vea a pantalla completa (estilo moderno de Android).
         enableEdgeToEdge()
+
+        // Si no hay ninguna sesion en marcha pero quedo activado nuestro
+        // No molestar (p. ej. porque Android cerro la app a mitad de sesion),
+        // lo devolvemos a la normalidad.
+        if (SesionActual.estado.value == EstadoSesion.Inactivo) {
+            ModoSilencio.restaurar(this)
+        }
 
         // setContent es donde le decimos a Compose QUE dibujar.
         setContent {

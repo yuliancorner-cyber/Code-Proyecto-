@@ -26,6 +26,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.focuszone.app.MainActivity
 import com.focuszone.app.R
+import com.focuszone.app.bloqueo.ModoSilencio
 import com.focuszone.app.datos.BaseDatos
 import com.focuszone.app.datos.SesionRegistro
 import com.focuszone.app.logica.DetectorPosicion
@@ -52,7 +53,8 @@ import kotlinx.coroutines.launch
  *  3. Alimenta al [MotorSesion] con esas lecturas y con un "tic" cada 250 ms.
  *  4. Publica cada estado nuevo en [SesionActual] para que lo vea la pantalla.
  *  5. Vibra en la alerta y al completar.
- *  6. Al terminar, guarda la sesion en Room y se detiene solo.
+ *  6. Activa No molestar al empezar y lo restaura al terminar.
+ *  7. Al terminar, guarda la sesion en Room y se detiene solo.
  */
 class ServicioSesion : Service(), SensorEventListener {
 
@@ -171,6 +173,9 @@ class ServicioSesion : Service(), SensorEventListener {
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "FocusZone:sesion")
             .apply { acquire((metaMin + 10) * 60_000L) }
 
+        // Silenciar notificaciones durante la sesion (si diste el permiso).
+        ModoSilencio.activar(this)
+
         detector.reiniciar()
         motor.iniciar(metaMin, ahora())
         ultimoEstado = EstadoSesion.Inactivo
@@ -265,6 +270,7 @@ class ServicioSesion : Service(), SensorEventListener {
         sensores.unregisterListener(this)
         wakeLock?.let { if (it.isHeld) it.release() }
         wakeLock = null
+        ModoSilencio.restaurar(this)
     }
 
     private fun detenerServicio() {

@@ -22,9 +22,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,12 +49,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.focuszone.app.R
+import com.focuszone.app.bloqueo.AppsBloqueadas
 import com.focuszone.app.logica.EstadoSesion
 import com.focuszone.app.logica.Recompensa
 import com.focuszone.app.ui.componentes.MantenerPantallaEncendida
 import com.focuszone.app.ui.componentes.VistaCamara
 import com.focuszone.app.ui.componentes.ZonaEnfoque
+import com.focuszone.app.ui.theme.AmbarAlerta
 import com.focuszone.app.ui.theme.VerdeEnfoque
 
 // Paneles oscuros translucidos: se leen bien sobre cualquier imagen de camara.
@@ -75,9 +80,15 @@ fun PantallaInicio(
     totalCreditosMin: Int,
     esperando: EstadoSesion.Esperando?,
     onIniciar: (metaMin: Int) -> Unit,
-    onCancelar: () -> Unit
+    onCancelar: () -> Unit,
+    onAbrirBloqueo: () -> Unit
 ) {
     val context = LocalContext.current
+
+    // --- Estado del bloqueo de apps (para la linea de aviso del panel) ------
+    val permisos = recordarEstadoPermisos()
+    val appsBloqueadas by remember { AppsBloqueadas.observar(context) }.collectAsStateWithLifecycle()
+    val bloqueoListo = permisos.accesibilidad && appsBloqueadas.isNotEmpty()
 
     // --- Permiso de camara -------------------------------------------------
     var tienePermisoCamara by remember {
@@ -137,7 +148,13 @@ fun PantallaInicio(
                 .systemBarsPadding()
                 .padding(16.dp)
         ) {
-            PanelSuperior(totalCreditosMin)
+            PanelSuperior(
+                totalCreditosMin = totalCreditosMin,
+                bloqueoListo = bloqueoListo,
+                numAppsBloqueadas = appsBloqueadas.size,
+                // Solo se puede configurar sin sesion en marcha.
+                onAbrirBloqueo = if (esperando == null) onAbrirBloqueo else null
+            )
 
             // La zona ocupa solo el hueco libre entre los dos paneles
             // (weight = "todo el espacio que sobre"), asi nunca queda tapada.
@@ -168,28 +185,57 @@ fun PantallaInicio(
 }
 
 @Composable
-private fun PanelSuperior(totalCreditosMin: Int) {
+private fun PanelSuperior(
+    totalCreditosMin: Int,
+    bloqueoListo: Boolean,
+    numAppsBloqueadas: Int,
+    onAbrirBloqueo: (() -> Unit)?
+) {
     Surface(color = FondoPanel, shape = RoundedCornerShape(20.dp)) {
-        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.guia_colocar_zona),
-                color = TextoPanel,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Filled.Lock,
-                    contentDescription = null,
-                    tint = AcentoPanel,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(Modifier.width(6.dp))
+        Row(
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 4.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.creditos_totales, totalCreditosMin),
-                    color = AcentoPanel,
-                    style = MaterialTheme.typography.labelLarge
+                    text = stringResource(R.string.guia_colocar_zona),
+                    color = TextoPanel,
+                    style = MaterialTheme.typography.bodyLarge
                 )
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Filled.Lock,
+                        contentDescription = null,
+                        tint = AcentoPanel,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.creditos_totales, totalCreditosMin),
+                        color = AcentoPanel,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = if (bloqueoListo) {
+                        stringResource(R.string.inicio_bloqueo_activo, numAppsBloqueadas)
+                    } else {
+                        stringResource(R.string.inicio_bloqueo_configurar)
+                    },
+                    color = if (bloqueoListo) TextoPanelSuave else AmbarAlerta,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            if (onAbrirBloqueo != null) {
+                IconButton(onClick = onAbrirBloqueo) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = stringResource(R.string.boton_config_bloqueo),
+                        tint = TextoPanel
+                    )
+                }
             }
         }
     }

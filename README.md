@@ -12,19 +12,22 @@ pierdes la recompensa. Al completar la sesión ganas créditos de "tiempo de pan
 
 ---
 
-## Estado actual: Fase 1 (MVP) — lista para probar
+## Estado actual: Fase 3a (bloqueo durante la sesión) — lista para probar
 
 Se puede usar a diario: eliges una meta, dejas el celular boca abajo, corre el
 cronómetro, y si lo levantas antes de tiempo te avisa y pierdes la recompensa.
+Durante la sesión el celular entra en No molestar y las apps que marques como
+distractoras no se pueden abrir.
 
 ### Hoja de ruta
 
 | Fase | Qué incluye | Estado |
 |---|---|---|
 | 0 | Proyecto Kotlin + Compose que compila e instala | ✅ Hecho |
-| 1 | MVP: zona simple sobre la cámara, detección boca-abajo por sensores, cronómetro, pantalla de bloqueo, créditos en Room | 🧪 Por probar |
-| 2 | Zona AR real con ARCore (colocar, arrastrar, redimensionar, rotar) | Pendiente |
-| 3 | Silenciar notificaciones y bloquear apps distractoras | Pendiente |
+| 1 | MVP: zona simple sobre la cámara, detección boca-abajo por sensores, cronómetro, pantalla de bloqueo, créditos en Room | ✅ Hecho |
+| 2 | Zona AR real con ARCore (colocar, arrastrar, redimensionar, rotar) — se hará después de la 3 | Pendiente |
+| 3a | No molestar automático + bloqueo de apps distractoras **durante la sesión** | 🧪 Por probar |
+| 3b | Apps distractoras bloqueadas **siempre**; se desbloquean gastando los minutos ganados | Pendiente |
 | 4 | Historial de sesiones y estadísticas de créditos | Pendiente |
 | 5 | Ícono, splash, modo oscuro, APK final | Pendiente |
 
@@ -51,35 +54,52 @@ quedará anclada al escritorio con ARCore.
 En Android Studio: menú **Git › Pull…** (o el botón ↙ azul de arriba) y acepta.
 Descarga los cambios de GitHub. Luego **Run ▶**.
 
-## Cómo probar la Fase 1
+## Cómo probar la Fase 3a
 
-### Antes de empezar (solo una vez, en el Xiaomi)
+### 1. Activar los permisos (una sola vez)
 
-MIUI/HyperOS mata los servicios en segundo plano para ahorrar batería. Para que
-la sesión no se corte con la pantalla apagada:
+En la app, toca **⚙** (arriba a la derecha del panel superior). Verás dos tarjetas:
 
-**Ajustes › Aplicaciones › Administrar aplicaciones › FocusZone › Ahorro de batería
-› Sin restricciones.** En la misma pantalla, activa también **Inicio automático**.
+**Servicio de accesibilidad** → **Activar**. Se abre Ajustes › Accesibilidad:
+1. Busca **Apps descargadas** / **Servicios instalados** › **FocusZone: bloqueo de apps**.
+2. Actívalo. Android mostrará una advertencia seria ("puede ver la pantalla…"):
+   es el texto genérico de cualquier servicio de accesibilidad. FocusZone solo
+   recibe el nombre de la app que se abre (`canRetrieveWindowContent="false"`).
+3. Si sale gris o dice **"Ajuste restringido"**: Ajustes › Aplicaciones › FocusZone ›
+   **⋮** (arriba a la derecha) › **Permitir ajustes restringidos**, y repite.
 
-### Recorrido de prueba
+**Acceso a No molestar** → **Activar** → busca FocusZone en la lista y permítelo.
 
-1. Abre la app. Acepta el permiso de **cámara**: verás el escritorio con un
-   rectángulo punteado encima.
-2. Elige **15 min** y pulsa **Iniciar sesión**. Acepta el permiso de
-   **notificaciones**.
-3. Deja el celular **boca abajo** sobre la mesa. La zona se pone verde
-   (*¡Detectado!*) y a los 2 s arranca el cronómetro, sin vibrar. Si lo volteas
-   solo un instante (menos de 1 s) alcanzas a ver *Sesión activa* con el candado,
-   el anillo y el cronómetro. Si lo mantienes levantado, salta la alerta (paso 4).
-4. **Prueba la trampa:** levántalo. Vibra fuerte y aparece la pantalla ámbar
-   *"No se permite el celular — aún no terminas, vuelve al trabajo"* con cuenta
-   atrás de 5. Déjalo boca abajo antes del 0: la sesión sigue.
-5. **Prueba la cancelación:** levántalo y espera a que llegue a 0 → *Sesión
-   cancelada*, sin créditos.
-6. **Prueba completarla:** una sesión de 15 min sin tocarlo → vibración doble,
-   *¡Sesión completada! +3 min*.
-7. **Prueba que se guarda:** cierra la app del todo (deslízala fuera de
-   recientes) y ábrela: arriba debe seguir el *Tiempo de pantalla ganado*.
+Al volver a FocusZone las dos tarjetas deben decir **✓ Activado**.
+
+> **Xiaomi:** si el servicio de accesibilidad se desactiva solo al rato, es el
+> ahorro de batería. Revisa que FocusZone siga en **Sin restricciones** y con
+> **Inicio automático** (ver más abajo).
+
+### 2. Elegir las apps distractoras
+
+En la misma pantalla, marca las apps que te distraen. Las **Sugeridas** salen
+arriba. Ajustes y el teléfono no aparecen: nunca se bloquean.
+
+Al volver al inicio, el panel superior dice *"Bloqueando N apps durante la sesión"*.
+
+### 3. Recorrido de prueba
+
+1. Inicia una sesión de 15 min. Baja la barra de notificaciones: debe aparecer
+   el icono de **No molestar**.
+2. Levanta el celular (salta la alerta) y, antes del 0, abre una app bloqueada
+   desde el menú de apps: te devuelve al inicio al instante, aparece el aviso
+   *"X está bloqueada…"* y FocusZone vuelve al frente con la cuenta atrás.
+3. Abre una app **no** bloqueada: se abre normal (aunque la alerta sigue corriendo).
+4. Al terminar (o cancelar) la sesión, **No molestar se desactiva solo** y las
+   apps vuelven a abrir con normalidad.
+5. Si ya tenías No molestar puesto antes de empezar, FocusZone no lo toca.
+
+### Ajustes del Xiaomi (si no los hiciste en la Fase 1)
+
+**Ajustes › Aplicaciones › Administrar aplicaciones › FocusZone:**
+**Ahorro de batería › Sin restricciones** e **Inicio automático** activado.
+Sin esto, HyperOS puede cortar la sesión o apagar el servicio de bloqueo.
 
 ### Pruebas automáticas
 
@@ -114,6 +134,12 @@ app/src/main/java/com/focuszone/app/
   sesion/
     ServicioSesion.kt          Servicio en primer plano: sensores, cronómetro, vibración, guardar
     SesionActual.kt            Puente servicio ↔ pantallas
+  bloqueo/                   Bloqueo de apps y No molestar (Fase 3)
+    ServicioBloqueo.kt         Servicio de accesibilidad: detecta y bloquea apps
+    AppsBloqueadas.kt          Tu lista de apps distractoras (guardada en el celular)
+    AppsInstaladas.kt          Lee las apps del menú; sugeridas y nunca-bloqueables
+    ModoSilencio.kt            Activa/restaura No molestar sin pisar tu configuración
+    PermisosBloqueo.kt         Comprueba y abre los ajustes de los permisos especiales
   datos/                     Base de datos Room
     SesionRegistro.kt          Tabla "sesiones"
     SesionDao.kt               Consultas (insertar, total de créditos)
@@ -124,6 +150,7 @@ app/src/main/java/com/focuszone/app/
     PantallaSesion.kt          Candado, anillo y cronómetro
     PantallaAlerta.kt          "No se permite el celular" + cuenta atrás
     PantallaResultado.kt       Completada / cancelada
+    PantallaBloqueo.kt         Permisos + elegir apps distractoras
     componentes/               Cámara, zona, anillo, utilidades
     theme/                     Colores, tema claro/oscuro, tipografía
 
@@ -162,12 +189,11 @@ Declarar un permiso **no** lo concede.
 | `FOREGROUND_SERVICE` (+`SPECIAL_USE`) | Mantener el cronómetro con la pantalla apagada | Automático al instalar |
 | `WAKE_LOCK` | Que el sistema no duerma los sensores | Automático al instalar |
 | `VIBRATE` | Avisar si levantas el celular antes de tiempo | Automático al instalar |
-| `PACKAGE_USAGE_STATS` | Saber qué app está en pantalla para bloquear distracciones | **A mano**: Ajustes > Apps > Acceso especial > Acceso a datos de uso (Fase 3) |
+| `ACCESS_NOTIFICATION_POLICY` | Activar/quitar No molestar durante la sesión | **A mano**: Ajustes › Acceso a No molestar (botón en ⚙) |
+| Servicio de accesibilidad | Detectar cuándo abres una app distractora | **A mano**: Ajustes › Accesibilidad (botón en ⚙) |
 
 Los sensores de movimiento (acelerómetro y giroscopio) **no necesitan permiso**: cualquier
 app puede leerlos.
 
-En la Fase 3 harán falta además dos accesos especiales que Android obliga a activar
-manualmente en Ajustes: **acceso a notificaciones** (para silenciarlas) y, si lo
-decidimos así, un **servicio de accesibilidad** (para bloquear apps). Te avisaré con
-instrucciones paso a paso cuando lleguemos ahí.
+Los dos últimos son "especiales": Android no deja pedirlos con un diálogo, así que
+la app te lleva a la pantalla de Ajustes correcta y tú los activas.
