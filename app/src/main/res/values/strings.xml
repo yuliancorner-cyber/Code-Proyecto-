@@ -5,8 +5,8 @@
     <string name="app_name">FocusZone</string>
 
     <!-- Pantalla de inicio -->
+    <string name="saldo_hoy">Saldo de hoy: %1$d min</string>
     <string name="guia_colocar_zona">Coloca tu celular boca abajo dentro de la zona para empezar.</string>
-    <string name="creditos_totales">Tiempo de pantalla ganado: %1$d min</string>
     <string name="meta_titulo">Meta de estudio</string>
     <string name="minutos_corto">%1$d min</string>
     <string name="recompensa_meta">Recompensa al completarla: +%1$d min de pantalla</string>
@@ -34,7 +34,6 @@
     <!-- Resultado -->
     <string name="completada_titulo">¡Sesión completada!</string>
     <string name="completada_ganaste">+%1$d min de pantalla</string>
-    <string name="completada_total">Total acumulado: %1$d min</string>
     <string name="cancelada_titulo">Sesión cancelada</string>
     <string name="cancelada_levantado">Levantaste el celular y no lo volviste a dejar a tiempo.</string>
     <string name="cancelada_abandono">Abandonaste la sesión antes de la meta.</string>
@@ -48,7 +47,7 @@
     <string name="notif_alerta_titulo">¡Vuelve a dejar el celular boca abajo!</string>
 
     <!-- Bloqueo de apps (Fase 3) -->
-    <string name="inicio_bloqueo_activo">Bloqueando %1$d apps durante la sesión</string>
+    <string name="inicio_bloqueo_activo">%1$d apps bloqueadas · se abren con tu saldo</string>
     <string name="inicio_bloqueo_configurar">Bloqueo de apps sin configurar: toca ⚙</string>
     <string name="boton_config_bloqueo">Configurar bloqueo de apps</string>
     <string name="bloqueo_titulo">Bloqueo de apps</string>
@@ -61,9 +60,19 @@
     <string name="permiso_activado">Activado</string>
     <string name="permiso_activar">Activar</string>
     <string name="bloqueo_apps_titulo">Apps distractoras (%1$d marcadas)</string>
-    <string name="bloqueo_apps_desc">Se bloquean mientras haya una sesión en marcha. Ajustes y el teléfono nunca se bloquean.</string>
+    <string name="bloqueo_apps_desc">Quedan bloqueadas siempre. Fuera de las sesiones puedes desbloquearlas un rato gastando tu saldo del día. Ajustes y el teléfono nunca se bloquean.</string>
     <string name="app_sugerida">Sugerida</string>
     <string name="bloqueo_aviso">%1$s está bloqueada: estás en una sesión de estudio</string>
     <string name="accesibilidad_etiqueta">FocusZone: bloqueo de apps</string>
     <string name="accesibilidad_descripcion">FocusZone usa este servicio solo para detectar cuándo abres una app que marcaste como distractora durante una sesión de estudio, y devolverte a la sesión. No lee el contenido de la pantalla ni lo que escribes.</string>
+
+    <!-- Desbloqueo con saldo (Fase 3b) -->
+    <string name="desbloqueado_quedan">🔓 Apps libres · quedan %1$s</string>
+    <string name="bloquear_ya">Bloquear ya</string>
+    <string name="desbloqueo_titulo">%1$s está bloqueada</string>
+    <string name="desbloqueo_pregunta">¿Cuánto tiempo quieres desbloquear tus apps?</string>
+    <string name="desbloqueo_detalle">Se descuenta de tu saldo de hoy y todas tus apps distractoras quedan libres ese rato.</string>
+    <string name="desbloqueo_sin_saldo">Hoy no te queda saldo. Completa una sesión para ganar minutos: 25 min de estudio = +5 min de pantalla.</string>
+    <string name="desbloqueo_ir_a_estudiar">Ir a estudiar</string>
+    <string name="desbloqueo_volver">No, volver a estudiar</string>
 </resources>

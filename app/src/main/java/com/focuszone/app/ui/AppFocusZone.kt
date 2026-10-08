@@ -3,14 +3,14 @@ package com.focuszone.app.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.focuszone.app.datos.BaseDatos
+import com.focuszone.app.bloqueo.SolicitudDesbloqueo
 import com.focuszone.app.logica.EstadoSesion
 import com.focuszone.app.sesion.SesionActual
+import com.focuszone.app.ui.componentes.recordarSaldoHoy
 
 /**
  * Raiz de la interfaz: elige que pantalla mostrar segun el estado de la sesion.
@@ -27,22 +27,25 @@ fun AppFocusZone() {
     // cuando la app no esta visible (ahorra bateria).
     val estado by SesionActual.estado.collectAsStateWithLifecycle()
 
-    // Total de creditos desde la base de datos; se actualiza solo al guardar
-    // una sesion nueva. remember{} evita crear una consulta nueva en cada redibujo.
-    val dao = remember { BaseDatos.obtener(context).sesionDao() }
-    val totalCreditos by remember { dao.totalCreditos() }.collectAsStateWithLifecycle(initialValue = 0)
+    // Saldo de hoy (ganado - gastado), se actualiza solo.
+    val saldoHoy = recordarSaldoHoy()
+
+    // ¿El servicio de bloqueo pidio mostrar "¿Desbloquear X min?" para alguna app?
+    val solicitud by SolicitudDesbloqueo.actual.collectAsStateWithLifecycle()
 
     // true mientras se muestra la pantalla de configuracion del bloqueo.
     var mostrandoBloqueo by rememberSaveable { mutableStateOf(false) }
 
     when (val actual = estado) {
         EstadoSesion.Inactivo, is EstadoSesion.Esperando ->
-            if (mostrandoBloqueo && actual == EstadoSesion.Inactivo) {
+            if (actual == EstadoSesion.Inactivo && SolicitudDesbloqueo.vigente(solicitud)) {
+                PantallaDesbloqueo(paquete = solicitud!!.paquete, saldoHoy = saldoHoy)
+            } else if (mostrandoBloqueo && actual == EstadoSesion.Inactivo) {
                 PantallaBloqueo(onVolver = { mostrandoBloqueo = false })
             } else {
                 // Inactivo y Esperando comparten pantalla (misma camara, sin parpadeo).
                 PantallaInicio(
-                    totalCreditosMin = totalCreditos,
+                    saldoHoy = saldoHoy,
                     esperando = actual as? EstadoSesion.Esperando,
                     onIniciar = { meta -> SesionActual.iniciar(context, meta) },
                     onCancelar = { SesionActual.abandonar(context) },
@@ -62,7 +65,7 @@ fun AppFocusZone() {
 
         is EstadoSesion.Completada, is EstadoSesion.Cancelada -> PantallaResultado(
             estado = actual,
-            totalCreditosMin = totalCreditos,
+            saldoHoy = saldoHoy,
             onVolver = { SesionActual.volverAlInicio() }
         )
     }

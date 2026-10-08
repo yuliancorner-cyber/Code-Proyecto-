@@ -12,12 +12,13 @@ pierdes la recompensa. Al completar la sesión ganas créditos de "tiempo de pan
 
 ---
 
-## Estado actual: Fase 3a (bloqueo durante la sesión) — lista para probar
+## Estado actual: Fase 3b (desbloqueo con saldo) — lista para probar
 
 Se puede usar a diario: eliges una meta, dejas el celular boca abajo, corre el
 cronómetro, y si lo levantas antes de tiempo te avisa y pierdes la recompensa.
-Durante la sesión el celular entra en No molestar y las apps que marques como
-distractoras no se pueden abrir.
+Durante la sesión el celular entra en No molestar. Las apps que marques como
+distractoras quedan bloqueadas **siempre**: fuera de las sesiones puedes abrirlas
+un rato gastando el saldo que ganaste ese día.
 
 ### Hoja de ruta
 
@@ -26,8 +27,8 @@ distractoras no se pueden abrir.
 | 0 | Proyecto Kotlin + Compose que compila e instala | ✅ Hecho |
 | 1 | MVP: zona simple sobre la cámara, detección boca-abajo por sensores, cronómetro, pantalla de bloqueo, créditos en Room | ✅ Hecho |
 | 2 | Zona AR real con ARCore (colocar, arrastrar, redimensionar, rotar) — se hará después de la 3 | Pendiente |
-| 3a | No molestar automático + bloqueo de apps distractoras **durante la sesión** | 🧪 Por probar |
-| 3b | Apps distractoras bloqueadas **siempre**; se desbloquean gastando los minutos ganados | Pendiente |
+| 3a | No molestar automático + bloqueo de apps distractoras **durante la sesión** | ✅ Hecho |
+| 3b | Apps distractoras bloqueadas **siempre**; se desbloquean gastando los minutos ganados | 🧪 Por probar |
 | 4 | Historial de sesiones y estadísticas de créditos | Pendiente |
 | 5 | Ícono, splash, modo oscuro, APK final | Pendiente |
 
@@ -42,6 +43,17 @@ distractoras no se pueden abrir.
 | Tolerancia | 5 s para volver a dejarlo; si no, se cancela sin créditos |
 | Durante la alerta | El cronómetro se pausa |
 
+### Reglas del saldo
+
+| Regla | Valor |
+|---|---|
+| Saldo de hoy | Minutos ganados hoy − minutos gastados hoy |
+| Reinicio | A medianoche: lo no gastado se pierde |
+| Cómo se gasta | Al abrir una app bloqueada eliges 5, 10 o 15 min (o lo que te quede), se descuentan al momento |
+| Durante el desbloqueo | **Todas** tus apps distractoras quedan libres; al acabarse te saca de la app |
+| Durante una sesión | Bloqueadas siempre, tengas saldo o no |
+| Sin saldo | No hay desbloqueo de emergencia |
+
 **Limitación honesta:** con el celular boca abajo la cámara no ve nada (la trasera
 apunta al techo), así que la zona sirve para *colocarlo*, y lo que vigila la sesión
 son los sensores. En la Fase 1 la zona es una guía fija en pantalla; en la Fase 2
@@ -54,46 +66,39 @@ quedará anclada al escritorio con ARCore.
 En Android Studio: menú **Git › Pull…** (o el botón ↙ azul de arriba) y acepta.
 Descarga los cambios de GitHub. Luego **Run ▶**.
 
-## Cómo probar la Fase 3a
+## Cómo probar la Fase 3b
 
-### 1. Activar los permisos (una sola vez)
+Requiere los permisos de la Fase 3a (accesibilidad y No molestar, en ⚙) y al
+menos una app marcada como distractora.
 
-En la app, toca **⚙** (arriba a la derecha del panel superior). Verás dos tarjetas:
+1. **Sin saldo:** si hoy no has completado ninguna sesión, abre una app bloqueada
+   desde el menú de apps. Te devuelve al inicio y FocusZone muestra
+   *"X está bloqueada · Hoy no te queda saldo"*.
+2. **Ganar saldo:** completa una sesión de 15 min → *Saldo de hoy: 3 min* en el
+   panel superior.
+3. **Gastar:** abre la app bloqueada → elige **3 min** → se abre sola. En FocusZone
+   el panel muestra *"🔓 Apps libres · quedan 02:59"* con el botón **Bloquear ya**.
+4. **Que te saque:** quédate dentro de la app hasta que pasen los 3 min → te
+   devuelve al inicio y FocusZone vuelve a preguntar.
+5. **Bloquear ya:** desbloquea, vuelve a FocusZone y pulsa **Bloquear ya** → la
+   app vuelve a estar bloqueada (los minutos no se devuelven).
+6. **Durante una sesión** las apps siguen bloqueadas aunque tengas saldo.
 
-**Servicio de accesibilidad** → **Activar**. Se abre Ajustes › Accesibilidad:
-1. Busca **Apps descargadas** / **Servicios instalados** › **FocusZone: bloqueo de apps**.
-2. Actívalo. Android mostrará una advertencia seria ("puede ver la pantalla…"):
-   es el texto genérico de cualquier servicio de accesibilidad. FocusZone solo
-   recibe el nombre de la app que se abre (`canRetrieveWindowContent="false"`).
-3. Si sale gris o dice **"Ajuste restringido"**: Ajustes › Aplicaciones › FocusZone ›
-   **⋮** (arriba a la derecha) › **Permitir ajustes restringidos**, y repite.
+> **Sobre la disciplina:** siempre puedes desmarcar apps en ⚙ o desactivar el
+> servicio en Ajustes (Ajustes nunca se bloquea, por seguridad). La app pone
+> fricción, no cerrojos.
 
-**Acceso a No molestar** → **Activar** → busca FocusZone en la lista y permítelo.
+### Activar los permisos (Fase 3a, una sola vez)
 
-Al volver a FocusZone las dos tarjetas deben decir **✓ Activado**.
+En la app, toca **⚙**:
 
-> **Xiaomi:** si el servicio de accesibilidad se desactiva solo al rato, es el
-> ahorro de batería. Revisa que FocusZone siga en **Sin restricciones** y con
-> **Inicio automático** (ver más abajo).
+- **Servicio de accesibilidad** → **Activar** → *Apps descargadas* /
+  *Servicios instalados* › **FocusZone: bloqueo de apps** › actívalo. Si sale gris
+  o *"Ajuste restringido"*: Ajustes › Aplicaciones › FocusZone › **⋮** ›
+  **Permitir ajustes restringidos**, y repite.
+- **Acceso a No molestar** → **Activar** → permite FocusZone.
 
-### 2. Elegir las apps distractoras
-
-En la misma pantalla, marca las apps que te distraen. Las **Sugeridas** salen
-arriba. Ajustes y el teléfono no aparecen: nunca se bloquean.
-
-Al volver al inicio, el panel superior dice *"Bloqueando N apps durante la sesión"*.
-
-### 3. Recorrido de prueba
-
-1. Inicia una sesión de 15 min. Baja la barra de notificaciones: debe aparecer
-   el icono de **No molestar**.
-2. Levanta el celular (salta la alerta) y, antes del 0, abre una app bloqueada
-   desde el menú de apps: te devuelve al inicio al instante, aparece el aviso
-   *"X está bloqueada…"* y FocusZone vuelve al frente con la cuenta atrás.
-3. Abre una app **no** bloqueada: se abre normal (aunque la alerta sigue corriendo).
-4. Al terminar (o cancelar) la sesión, **No molestar se desactiva solo** y las
-   apps vuelven a abrir con normalidad.
-5. Si ya tenías No molestar puesto antes de empezar, FocusZone no lo toca.
+Luego marca tus apps distractoras en la lista de abajo.
 
 ### Ajustes del Xiaomi (si no los hiciste en la Fase 1)
 
@@ -103,9 +108,9 @@ Sin esto, HyperOS puede cortar la sesión o apagar el servicio de bloqueo.
 
 ### Pruebas automáticas
 
-La lógica de sesión tiene 16 pruebas que corren en el PC sin celular. En Android
+La lógica de sesión y de saldo tiene 23 pruebas que corren en el PC sin celular. En Android
 Studio: panel izquierdo › `app/java/com.focuszone.app (test)/logica` › clic
-derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 16 en verde.
+derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 23 en verde.
 
 ### Si la detección es demasiado sensible (o poco)
 
@@ -128,6 +133,7 @@ app/src/main/java/com/focuszone/app/
   MainActivity.kt            Punto de entrada
   logica/                    Reglas puras, sin Android (probadas con tests)
     Recompensa.kt              Metas y fórmula de créditos
+    ReglasSaldo.kt             Saldo diario, opciones de desbloqueo, inicio del día
     EstadoSesion.kt            Los 6 estados posibles de una sesión
     DetectorPosicion.kt        Acelerómetro → "boca abajo y quieto"
     MotorSesion.kt             Máquina de estados: arranque, alerta, cancelación, meta
@@ -136,14 +142,19 @@ app/src/main/java/com/focuszone/app/
     SesionActual.kt            Puente servicio ↔ pantallas
   bloqueo/                   Bloqueo de apps y No molestar (Fase 3)
     ServicioBloqueo.kt         Servicio de accesibilidad: detecta y bloquea apps
+    Desbloqueo.kt              Ventana de desbloqueo activa (hasta qué hora)
+    GestorSaldo.kt             Saldo de hoy y gastar minutos
+    SolicitudDesbloqueo.kt     "Intentaste abrir X": aviso del servicio a la pantalla
     AppsBloqueadas.kt          Tu lista de apps distractoras (guardada en el celular)
     AppsInstaladas.kt          Lee las apps del menú; sugeridas y nunca-bloqueables
     ModoSilencio.kt            Activa/restaura No molestar sin pisar tu configuración
     PermisosBloqueo.kt         Comprueba y abre los ajustes de los permisos especiales
   datos/                     Base de datos Room
     SesionRegistro.kt          Tabla "sesiones"
-    SesionDao.kt               Consultas (insertar, total de créditos)
-    BaseDatos.kt               El archivo focuszone.db
+    SesionDao.kt               Consultas (insertar, créditos de hoy y totales)
+    DesbloqueoRegistro.kt      Tabla "desbloqueos" (minutos gastados)
+    DesbloqueoDao.kt           Consultas (insertar, gastado hoy)
+    BaseDatos.kt               El archivo focuszone.db (versión 2, con migración)
   ui/
     AppFocusZone.kt            Elige qué pantalla mostrar según el estado
     PantallaInicio.kt          Cámara + zona + elegir meta
@@ -151,6 +162,7 @@ app/src/main/java/com/focuszone/app/
     PantallaAlerta.kt          "No se permite el celular" + cuenta atrás
     PantallaResultado.kt       Completada / cancelada
     PantallaBloqueo.kt         Permisos + elegir apps distractoras
+    PantallaDesbloqueo.kt      "X está bloqueada · ¿Desbloquear 5/10/15 min?"
     componentes/               Cámara, zona, anillo, utilidades
     theme/                     Colores, tema claro/oscuro, tipografía
 

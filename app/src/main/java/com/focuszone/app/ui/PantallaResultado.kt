@@ -37,7 +37,7 @@ import com.focuszone.app.ui.theme.FocusZoneTheme
 @Composable
 fun PantallaResultado(
     estado: EstadoSesion,
-    totalCreditosMin: Int,
+    saldoHoy: Int,
     onVolver: () -> Unit
 ) {
     val colores = MaterialTheme.colorScheme
@@ -54,7 +54,7 @@ fun PantallaResultado(
             titulo = stringResource(R.string.completada_titulo)
             lineas = listOf(
                 stringResource(R.string.completada_ganaste, estado.creditosMin),
-                stringResource(R.string.completada_total, totalCreditosMin)
+                stringResource(R.string.saldo_hoy, saldoHoy)
             )
         }
         is EstadoSesion.Cancelada -> {
@@ -122,7 +122,7 @@ fun PantallaResultado(
 @Composable
 private fun VistaPreviaCompletada() {
     FocusZoneTheme {
-        PantallaResultado(EstadoSesion.Completada(25, 5), totalCreditosMin = 30, onVolver = {})
+        PantallaResultado(EstadoSesion.Completada(25, 5), saldoHoy = 12, onVolver = {})
     }
 }
 
@@ -132,7 +132,7 @@ private fun VistaPreviaCancelada() {
     FocusZoneTheme(temaOscuro = true) {
         PantallaResultado(
             EstadoSesion.Cancelada(25, 312, MotivoCancelacion.LEVANTADO),
-            totalCreditosMin = 30,
+            saldoHoy = 12,
             onVolver = {}
         )
     }

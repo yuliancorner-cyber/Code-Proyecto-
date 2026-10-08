@@ -23,6 +23,13 @@ interface SesionDao {
     @Query("SELECT COALESCE(SUM(creditosMin), 0) FROM sesiones WHERE completada = 1")
     fun totalCreditos(): Flow<Int>
 
+    /** Minutos de pantalla ganados desde [desdeMillis] (normalmente, desde las 00:00 de hoy). */
+    @Query(
+        "SELECT COALESCE(SUM(creditosMin), 0) FROM sesiones " +
+            "WHERE completada = 1 AND finMillis >= :desdeMillis"
+    )
+    fun creditosDesde(desdeMillis: Long): Flow<Int>
+
     /** Numero de sesiones completadas. */
     @Query("SELECT COUNT(*) FROM sesiones WHERE completada = 1")
     fun totalCompletadas(): Flow<Int>

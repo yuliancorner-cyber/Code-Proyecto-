@@ -52,11 +52,14 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.focuszone.app.R
 import com.focuszone.app.bloqueo.AppsBloqueadas
+import com.focuszone.app.bloqueo.Desbloqueo
 import com.focuszone.app.logica.EstadoSesion
 import com.focuszone.app.logica.Recompensa
 import com.focuszone.app.ui.componentes.MantenerPantallaEncendida
 import com.focuszone.app.ui.componentes.VistaCamara
 import com.focuszone.app.ui.componentes.ZonaEnfoque
+import com.focuszone.app.ui.componentes.formatearTiempo
+import com.focuszone.app.ui.componentes.recordarSegundosDesbloqueo
 import com.focuszone.app.ui.theme.AmbarAlerta
 import com.focuszone.app.ui.theme.VerdeEnfoque
 
@@ -77,7 +80,7 @@ private val AcentoPanel = VerdeEnfoque
  */
 @Composable
 fun PantallaInicio(
-    totalCreditosMin: Int,
+    saldoHoy: Int,
     esperando: EstadoSesion.Esperando?,
     onIniciar: (metaMin: Int) -> Unit,
     onCancelar: () -> Unit,
@@ -149,7 +152,9 @@ fun PantallaInicio(
                 .padding(16.dp)
         ) {
             PanelSuperior(
-                totalCreditosMin = totalCreditosMin,
+                saldoHoy = saldoHoy,
+                segundosDesbloqueo = recordarSegundosDesbloqueo(),
+                onBloquearYa = { Desbloqueo.cerrar(context) },
                 bloqueoListo = bloqueoListo,
                 numAppsBloqueadas = appsBloqueadas.size,
                 // Solo se puede configurar sin sesion en marcha.
@@ -186,7 +191,9 @@ fun PantallaInicio(
 
 @Composable
 private fun PanelSuperior(
-    totalCreditosMin: Int,
+    saldoHoy: Int,
+    segundosDesbloqueo: Long,
+    onBloquearYa: () -> Unit,
     bloqueoListo: Boolean,
     numAppsBloqueadas: Int,
     onAbrirBloqueo: (() -> Unit)?
@@ -212,10 +219,27 @@ private fun PanelSuperior(
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        text = stringResource(R.string.creditos_totales, totalCreditosMin),
+                        text = stringResource(R.string.saldo_hoy, saldoHoy),
                         color = AcentoPanel,
                         style = MaterialTheme.typography.labelLarge
                     )
+                }
+                // Si gastaste saldo y las apps estan libres: cuenta atras + "Bloquear ya".
+                if (segundosDesbloqueo > 0) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(
+                                R.string.desbloqueado_quedan,
+                                formatearTiempo(segundosDesbloqueo)
+                            ),
+                            color = AmbarAlerta,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        TextButton(onClick = onBloquearYa) {
+                            Text(stringResource(R.string.bloquear_ya), color = TextoPanel)
+                        }
+                    }
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(
