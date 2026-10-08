@@ -91,7 +91,12 @@ fun PantallaInicio(
     // --- Estado del bloqueo de apps (para la linea de aviso del panel) ------
     val permisos = recordarEstadoPermisos()
     val appsBloqueadas by remember { AppsBloqueadas.observar(context) }.collectAsStateWithLifecycle()
-    val bloqueoListo = permisos.accesibilidad && appsBloqueadas.isNotEmpty()
+    val bloqueoListo = permisos.accesibilidadFuncionando && appsBloqueadas.isNotEmpty()
+    val textoBloqueo = when {
+        bloqueoListo -> stringResource(R.string.inicio_bloqueo_activo, appsBloqueadas.size)
+        permisos.accesibilidadDetenida -> stringResource(R.string.inicio_bloqueo_detenido)
+        else -> stringResource(R.string.inicio_bloqueo_configurar)
+    }
 
     // --- Permiso de camara -------------------------------------------------
     var tienePermisoCamara by remember {
@@ -156,7 +161,7 @@ fun PantallaInicio(
                 segundosDesbloqueo = recordarSegundosDesbloqueo(),
                 onBloquearYa = { Desbloqueo.cerrar(context) },
                 bloqueoListo = bloqueoListo,
-                numAppsBloqueadas = appsBloqueadas.size,
+                textoBloqueo = textoBloqueo,
                 // Solo se puede configurar sin sesion en marcha.
                 onAbrirBloqueo = if (esperando == null) onAbrirBloqueo else null
             )
@@ -195,7 +200,7 @@ private fun PanelSuperior(
     segundosDesbloqueo: Long,
     onBloquearYa: () -> Unit,
     bloqueoListo: Boolean,
-    numAppsBloqueadas: Int,
+    textoBloqueo: String,
     onAbrirBloqueo: (() -> Unit)?
 ) {
     Surface(color = FondoPanel, shape = RoundedCornerShape(20.dp)) {
@@ -243,11 +248,7 @@ private fun PanelSuperior(
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = if (bloqueoListo) {
-                        stringResource(R.string.inicio_bloqueo_activo, numAppsBloqueadas)
-                    } else {
-                        stringResource(R.string.inicio_bloqueo_configurar)
-                    },
+                    text = textoBloqueo,
                     color = if (bloqueoListo) TextoPanelSuave else AmbarAlerta,
                     style = MaterialTheme.typography.bodyMedium
                 )

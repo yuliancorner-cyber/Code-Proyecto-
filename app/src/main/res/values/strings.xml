@@ -49,12 +49,17 @@
     <!-- Bloqueo de apps (Fase 3) -->
     <string name="inicio_bloqueo_activo">%1$d apps bloqueadas · se abren con tu saldo</string>
     <string name="inicio_bloqueo_configurar">Bloqueo de apps sin configurar: toca ⚙</string>
+    <string name="inicio_bloqueo_detenido">El bloqueo se detuvo: toca ⚙ para reactivarlo</string>
     <string name="boton_config_bloqueo">Configurar bloqueo de apps</string>
     <string name="bloqueo_titulo">Bloqueo de apps</string>
     <string name="bloqueo_permisos">Permisos</string>
     <string name="permiso_accesibilidad_titulo">Servicio de accesibilidad</string>
     <string name="permiso_accesibilidad_desc">Detecta cuándo abres una app bloqueada durante la sesión y te devuelve a FocusZone. Solo ve qué app se abre: no lee la pantalla ni lo que escribes.</string>
     <string name="ayuda_accesibilidad">En Accesibilidad busca «Apps descargadas» o «Servicios instalados» › FocusZone › actívalo. Si aparece gris o dice «Ajuste restringido»: Ajustes › Aplicaciones › FocusZone › ⋮ (arriba a la derecha) › «Permitir ajustes restringidos», y vuelve a intentarlo.</string>
+    <string name="permiso_accesibilidad_detenido">Está activado, pero el sistema lo detuvo y no está bloqueando. En Accesibilidad, desactívalo y vuelve a activarlo. Para que no se repita, revisa el ahorro de batería de FocusZone (Sin restricciones + Inicio automático).</string>
+    <string name="permiso_ventanas_titulo">Ventanas en segundo plano (Xiaomi)</string>
+    <string name="permiso_ventanas_desc">Xiaomi no deja que FocusZone aparezca sola cuando abres una app bloqueada. En la pantalla que se abre: Otros permisos › «Mostrar ventanas emergentes mientras se ejecuta en segundo plano» › Permitir. Aprovecha y revisa Ahorro de batería › Sin restricciones e Inicio automático.</string>
+    <string name="permiso_abrir_ajustes_app">Abrir ajustes de FocusZone</string>
     <string name="permiso_nomolestar_titulo">Acceso a No molestar</string>
     <string name="permiso_nomolestar_desc">Silencia las notificaciones mientras estudias y las devuelve al terminar. Las alarmas siguen sonando.</string>
     <string name="permiso_activado">Activado</string>

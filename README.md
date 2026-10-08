@@ -98,7 +98,22 @@ En la app, toca **⚙**:
   **Permitir ajustes restringidos**, y repite.
 - **Acceso a No molestar** → **Activar** → permite FocusZone.
 
+- **Ventanas en segundo plano (Xiaomi)** → **Abrir ajustes de FocusZone** →
+  **Otros permisos** › *Mostrar ventanas emergentes mientras se ejecuta en segundo
+  plano* › **Permitir**. Sin esto, al abrir una app bloqueada solo vuelves al
+  escritorio y FocusZone no aparece.
+
 Luego marca tus apps distractoras en la lista de abajo.
+
+### Si deja de bloquear
+
+HyperOS a veces detiene el servicio de accesibilidad aunque en Ajustes siga
+"activado". FocusZone lo detecta: el panel de inicio dice *"El bloqueo se
+detuvo"* y en ⚙ la tarjeta de accesibilidad lo explica en rojo.
+
+Arreglo: Ajustes › Accesibilidad › FocusZone › **desactívalo y vuelve a
+activarlo**. Para que no se repita: Ajustes › Aplicaciones › FocusZone ›
+**Ahorro de batería › Sin restricciones** e **Inicio automático** activado.
 
 ### Ajustes del Xiaomi (si no los hiciste en la Fase 1)
 

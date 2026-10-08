@@ -51,6 +51,7 @@ import com.focuszone.app.bloqueo.AppsBloqueadas
 import com.focuszone.app.bloqueo.AppsInstaladas
 import com.focuszone.app.bloqueo.EstadoPermisos
 import com.focuszone.app.bloqueo.PermisosBloqueo
+import com.focuszone.app.bloqueo.ServicioBloqueo
 
 /**
  * Estado de los permisos especiales, que se vuelve a leer cada vez que la
@@ -64,7 +65,10 @@ fun recordarEstadoPermisos(): EstadoPermisos {
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         estado = PermisosBloqueo.leer(context)
     }
-    return estado
+    // Android conecta el servicio un instante despues de abrir la app: lo
+    // escuchamos para no mostrar un aviso de "detenido" que no es real.
+    val funcionando by ServicioBloqueo.funcionando.collectAsStateWithLifecycle()
+    return estado.copy(accesibilidadFuncionando = estado.accesibilidad && funcionando)
 }
 
 /** Configuracion del bloqueo: permisos especiales + eleccion de apps distractoras. */
@@ -119,11 +123,16 @@ fun PantallaBloqueo(onVolver: () -> Unit) {
                 TarjetaPermiso(
                     titulo = stringResource(R.string.permiso_accesibilidad_titulo),
                     descripcion = stringResource(R.string.permiso_accesibilidad_desc),
-                    concedido = permisos.accesibilidad,
+                    concedido = permisos.accesibilidadFuncionando,
+                    aviso = if (permisos.accesibilidadDetenida) {
+                        stringResource(R.string.permiso_accesibilidad_detenido)
+                    } else {
+                        null
+                    },
                     onActivar = { PermisosBloqueo.abrirAjustesAccesibilidad(context) }
                 )
             }
-            if (!permisos.accesibilidad) {
+            if (!permisos.accesibilidadFuncionando) {
                 item {
                     Text(
                         text = stringResource(R.string.ayuda_accesibilidad),
@@ -139,6 +148,16 @@ fun PantallaBloqueo(onVolver: () -> Unit) {
                     descripcion = stringResource(R.string.permiso_nomolestar_desc),
                     concedido = permisos.noMolestar,
                     onActivar = { PermisosBloqueo.abrirAjustesNoMolestar(context) }
+                )
+            }
+            item {
+                // Android no deja comprobar este permiso de Xiaomi: siempre mostramos el boton.
+                TarjetaPermiso(
+                    titulo = stringResource(R.string.permiso_ventanas_titulo),
+                    descripcion = stringResource(R.string.permiso_ventanas_desc),
+                    concedido = false,
+                    textoBoton = stringResource(R.string.permiso_abrir_ajustes_app),
+                    onActivar = { PermisosBloqueo.abrirAjustesDeLaApp(context) }
                 )
             }
 
@@ -190,7 +209,9 @@ private fun TarjetaPermiso(
     titulo: String,
     descripcion: String,
     concedido: Boolean,
-    onActivar: () -> Unit
+    onActivar: () -> Unit,
+    aviso: String? = null,
+    textoBoton: String? = null
 ) {
     val colores = MaterialTheme.colorScheme
     Surface(
@@ -207,6 +228,10 @@ private fun TarjetaPermiso(
                 style = MaterialTheme.typography.bodyMedium,
                 color = colores.onSurface.copy(alpha = 0.7f)
             )
+            if (aviso != null) {
+                Spacer(Modifier.height(8.dp))
+                Text(aviso, style = MaterialTheme.typography.bodyMedium, color = colores.error)
+            }
             Spacer(Modifier.height(12.dp))
             if (concedido) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -225,7 +250,7 @@ private fun TarjetaPermiso(
                 }
             } else {
                 Button(onClick = onActivar, shape = RoundedCornerShape(12.dp)) {
-                    Text(stringResource(R.string.permiso_activar))
+                    Text(textoBoton ?: stringResource(R.string.permiso_activar))
                 }
             }
         }
