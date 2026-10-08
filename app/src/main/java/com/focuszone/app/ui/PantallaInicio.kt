@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Smartphone
@@ -84,7 +85,8 @@ fun PantallaInicio(
     esperando: EstadoSesion.Esperando?,
     onIniciar: (metaMin: Int) -> Unit,
     onCancelar: () -> Unit,
-    onAbrirBloqueo: () -> Unit
+    onAbrirBloqueo: () -> Unit,
+    onAbrirEstadisticas: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -162,8 +164,9 @@ fun PantallaInicio(
                 onBloquearYa = { Desbloqueo.cerrar(context) },
                 bloqueoListo = bloqueoListo,
                 textoBloqueo = textoBloqueo,
-                // Solo se puede configurar sin sesion en marcha.
-                onAbrirBloqueo = if (esperando == null) onAbrirBloqueo else null
+                // Solo se puede configurar / consultar sin sesion en marcha.
+                onAbrirBloqueo = if (esperando == null) onAbrirBloqueo else null,
+                onAbrirEstadisticas = if (esperando == null) onAbrirEstadisticas else null
             )
 
             // La zona ocupa solo el hueco libre entre los dos paneles
@@ -201,7 +204,8 @@ private fun PanelSuperior(
     onBloquearYa: () -> Unit,
     bloqueoListo: Boolean,
     textoBloqueo: String,
-    onAbrirBloqueo: (() -> Unit)?
+    onAbrirBloqueo: (() -> Unit)?,
+    onAbrirEstadisticas: (() -> Unit)?
 ) {
     Surface(color = FondoPanel, shape = RoundedCornerShape(20.dp)) {
         Row(
@@ -253,13 +257,25 @@ private fun PanelSuperior(
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-            if (onAbrirBloqueo != null) {
-                IconButton(onClick = onAbrirBloqueo) {
-                    Icon(
-                        imageVector = Icons.Filled.Settings,
-                        contentDescription = stringResource(R.string.boton_config_bloqueo),
-                        tint = TextoPanel
-                    )
+            // Botones en columna a la derecha: estadisticas y configuracion del bloqueo.
+            Column {
+                if (onAbrirEstadisticas != null) {
+                    IconButton(onClick = onAbrirEstadisticas) {
+                        Icon(
+                            imageVector = Icons.Filled.BarChart,
+                            contentDescription = stringResource(R.string.boton_estadisticas),
+                            tint = TextoPanel
+                        )
+                    }
+                }
+                if (onAbrirBloqueo != null) {
+                    IconButton(onClick = onAbrirBloqueo) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.boton_config_bloqueo),
+                            tint = TextoPanel
+                        )
+                    }
                 }
             }
         }

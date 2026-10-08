@@ -20,3 +20,11 @@ val VerdeMenta = Color(0xFFDCFCE7)       // fondo suave de acento (circulo del c
 val FondoClaro = Color(0xFFF8FAFC)
 val SuperficieClara = Color(0xFFFFFFFF)
 val GrisTextoOscuro = Color(0xFF0F172A)
+
+// --- Graficas (Fase 4) ---
+// Validados con el script de la guia de visualizacion (contraste, luminosidad
+// y saturacion) contra el fondo de las tarjetas de cada tema. El verde
+// brillante VerdeEnfoque NO sirve para barras en modo oscuro: queda demasiado
+// claro (lavado) sobre el fondo; por eso cada tema tiene su propio verde.
+val BarraClaro = Color(0xFF15803D)   // sobre tarjeta blanca  #FFFFFF
+val BarraOscuro = Color(0xFF16A34A)  // sobre tarjeta oscura  #1E293B

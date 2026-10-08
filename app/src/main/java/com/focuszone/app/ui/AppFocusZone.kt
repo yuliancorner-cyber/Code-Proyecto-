@@ -33,15 +33,17 @@ fun AppFocusZone() {
     // ¿El servicio de bloqueo pidio mostrar "¿Desbloquear X min?" para alguna app?
     val solicitud by SolicitudDesbloqueo.actual.collectAsStateWithLifecycle()
 
-    // true mientras se muestra la pantalla de configuracion del bloqueo.
-    var mostrandoBloqueo by rememberSaveable { mutableStateOf(false) }
+    // Pantalla secundaria abierta desde el inicio (si hay alguna).
+    var extra by rememberSaveable { mutableStateOf(PantallaExtra.NINGUNA) }
 
     when (val actual = estado) {
         EstadoSesion.Inactivo, is EstadoSesion.Esperando ->
             if (actual == EstadoSesion.Inactivo && SolicitudDesbloqueo.vigente(solicitud)) {
                 PantallaDesbloqueo(paquete = solicitud!!.paquete, saldoHoy = saldoHoy)
-            } else if (mostrandoBloqueo && actual == EstadoSesion.Inactivo) {
-                PantallaBloqueo(onVolver = { mostrandoBloqueo = false })
+            } else if (extra == PantallaExtra.BLOQUEO && actual == EstadoSesion.Inactivo) {
+                PantallaBloqueo(onVolver = { extra = PantallaExtra.NINGUNA })
+            } else if (extra == PantallaExtra.ESTADISTICAS && actual == EstadoSesion.Inactivo) {
+                PantallaEstadisticas(onVolver = { extra = PantallaExtra.NINGUNA })
             } else {
                 // Inactivo y Esperando comparten pantalla (misma camara, sin parpadeo).
                 PantallaInicio(
@@ -49,7 +51,8 @@ fun AppFocusZone() {
                     esperando = actual as? EstadoSesion.Esperando,
                     onIniciar = { meta -> SesionActual.iniciar(context, meta) },
                     onCancelar = { SesionActual.abandonar(context) },
-                    onAbrirBloqueo = { mostrandoBloqueo = true }
+                    onAbrirBloqueo = { extra = PantallaExtra.BLOQUEO },
+                    onAbrirEstadisticas = { extra = PantallaExtra.ESTADISTICAS }
                 )
             }
 
@@ -70,3 +73,6 @@ fun AppFocusZone() {
         )
     }
 }
+
+/** Pantallas secundarias a las que se llega desde el inicio. */
+private enum class PantallaExtra { NINGUNA, BLOQUEO, ESTADISTICAS }

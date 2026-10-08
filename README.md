@@ -12,7 +12,7 @@ pierdes la recompensa. Al completar la sesión ganas créditos de "tiempo de pan
 
 ---
 
-## Estado actual: Fase 3b (desbloqueo con saldo) — lista para probar
+## Estado actual: Fase 4 (estadísticas) — lista para probar
 
 Se puede usar a diario: eliges una meta, dejas el celular boca abajo, corre el
 cronómetro, y si lo levantas antes de tiempo te avisa y pierdes la recompensa.
@@ -28,8 +28,8 @@ un rato gastando el saldo que ganaste ese día.
 | 1 | MVP: zona simple sobre la cámara, detección boca-abajo por sensores, cronómetro, pantalla de bloqueo, créditos en Room | ✅ Hecho |
 | 2 | Zona AR real con ARCore (colocar, arrastrar, redimensionar, rotar) — se hará después de la 3 | Pendiente |
 | 3a | No molestar automático + bloqueo de apps distractoras **durante la sesión** | ✅ Hecho |
-| 3b | Apps distractoras bloqueadas **siempre**; se desbloquean gastando los minutos ganados | 🧪 Por probar |
-| 4 | Historial de sesiones y estadísticas de créditos | Pendiente |
+| 3b | Apps distractoras bloqueadas **siempre**; se desbloquean gastando los minutos ganados | ✅ Hecho |
+| 4 | Historial de sesiones y estadísticas de créditos | 🧪 Por probar |
 | 5 | Ícono, splash, modo oscuro, APK final | Pendiente |
 
 ### Reglas de una sesión
@@ -65,6 +65,22 @@ quedará anclada al escritorio con ARCore.
 
 En Android Studio: menú **Git › Pull…** (o el botón ↙ azul de arriba) y acepta.
 Descarga los cambios de GitHub. Luego **Run ▶**.
+
+## Cómo probar la Fase 4
+
+En el panel superior de inicio, toca **📊** (encima del ⚙). Verás:
+
+| Sección | Qué muestra |
+|---|---|
+| **Racha** | Días seguidos con al menos una sesión completada (si hoy aún no estudiaste, cuenta hasta ayer) |
+| **Éxito** | % de sesiones completadas frente a canceladas |
+| **Tiempo total de enfoque** | Minutos con el celular boca abajo desde el principio (incluye lo estudiado en sesiones canceladas) |
+| **Gráfica de la semana** | Minutos de enfoque de los últimos 7 días; toca una barra para ver su valor |
+| **Saldo de pantalla** | Ganado y gastado hoy, y desde el principio |
+| **Historial** | Últimas 30 sesiones y desbloqueos, con fecha y minutos |
+
+Sin celular: abre `ui/PantallaEstadisticas.kt` y pulsa **Split** para ver la
+pantalla con datos de ejemplo en tema claro y oscuro.
 
 ## Cómo probar la Fase 3b
 
@@ -123,9 +139,9 @@ Sin esto, HyperOS puede cortar la sesión o apagar el servicio de bloqueo.
 
 ### Pruebas automáticas
 
-La lógica de sesión y de saldo tiene 23 pruebas que corren en el PC sin celular. En Android
+La lógica de sesión, saldo y estadísticas tiene 35 pruebas que corren en el PC sin celular. En Android
 Studio: panel izquierdo › `app/java/com.focuszone.app (test)/logica` › clic
-derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 23 en verde.
+derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 35 en verde.
 
 ### Si la detección es demasiado sensible (o poco)
 
@@ -149,6 +165,7 @@ app/src/main/java/com/focuszone/app/
   logica/                    Reglas puras, sin Android (probadas con tests)
     Recompensa.kt              Metas y fórmula de créditos
     ReglasSaldo.kt             Saldo diario, opciones de desbloqueo, inicio del día
+    Estadisticas.kt            Racha, % de éxito, minutos por día e historial
     EstadoSesion.kt            Los 6 estados posibles de una sesión
     DetectorPosicion.kt        Acelerómetro → "boca abajo y quieto"
     MotorSesion.kt             Máquina de estados: arranque, alerta, cancelación, meta
@@ -170,6 +187,7 @@ app/src/main/java/com/focuszone/app/
     DesbloqueoRegistro.kt      Tabla "desbloqueos" (minutos gastados)
     DesbloqueoDao.kt           Consultas (insertar, gastado hoy)
     BaseDatos.kt               El archivo focuszone.db (versión 2, con migración)
+    RepositorioEstadisticas.kt Lee todo y calcula las estadísticas al vuelo
   ui/
     AppFocusZone.kt            Elige qué pantalla mostrar según el estado
     PantallaInicio.kt          Cámara + zona + elegir meta
@@ -178,6 +196,7 @@ app/src/main/java/com/focuszone/app/
     PantallaResultado.kt       Completada / cancelada
     PantallaBloqueo.kt         Permisos + elegir apps distractoras
     PantallaDesbloqueo.kt      "X está bloqueada · ¿Desbloquear 5/10/15 min?"
+    PantallaEstadisticas.kt    Racha, éxito, gráfica de la semana, saldo e historial
     componentes/               Cámara, zona, anillo, utilidades
     theme/                     Colores, tema claro/oscuro, tipografía
 

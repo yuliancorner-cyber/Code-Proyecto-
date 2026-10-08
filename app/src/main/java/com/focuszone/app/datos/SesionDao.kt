@@ -30,6 +30,10 @@ interface SesionDao {
     )
     fun creditosDesde(desdeMillis: Long): Flow<Int>
 
+    /** Todas las sesiones, de la mas reciente a la mas antigua (para estadisticas). */
+    @Query("SELECT * FROM sesiones ORDER BY finMillis DESC")
+    fun todas(): Flow<List<SesionRegistro>>
+
     /** Numero de sesiones completadas. */
     @Query("SELECT COUNT(*) FROM sesiones WHERE completada = 1")
     fun totalCompletadas(): Flow<Int>

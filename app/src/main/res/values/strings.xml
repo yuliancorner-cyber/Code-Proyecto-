@@ -80,4 +80,40 @@
     <string name="desbloqueo_sin_saldo">Hoy no te queda saldo. Completa una sesión para ganar minutos: 25 min de estudio = +5 min de pantalla.</string>
     <string name="desbloqueo_ir_a_estudiar">Ir a estudiar</string>
     <string name="desbloqueo_volver">No, volver a estudiar</string>
+
+    <!-- Estadisticas (Fase 4) -->
+    <string name="boton_estadisticas">Ver estadísticas</string>
+    <string name="estadisticas_titulo">Estadísticas</string>
+    <string name="est_vacio">Aún no hay sesiones. Completa la primera y aquí verás tu progreso.</string>
+    <string name="est_racha">Racha</string>
+    <string name="est_racha_detalle">seguidos con una sesión completada</string>
+    <string name="est_exito">Éxito</string>
+    <string name="est_exito_detalle">%1$d de %2$d sesiones completadas</string>
+    <string name="porcentaje">%1$d %%</string>
+    <string name="est_enfoque_total">Tiempo total de enfoque</string>
+    <string name="est_enfoque_total_detalle">con el celular boca abajo, desde el principio</string>
+    <string name="est_semana_titulo">Minutos de enfoque · últimos 7 días</string>
+    <string name="est_semana_total">Total de la semana: %1$s</string>
+    <string name="est_grafica_ayuda">Toca una barra para ver sus minutos.</string>
+    <string name="grafica_descripcion">Minutos de enfoque por día: %1$s</string>
+    <string name="dias_semana_iniciales">L,M,X,J,V,S,D</string>
+    <string name="est_saldo_titulo">Saldo de pantalla</string>
+    <string name="est_saldo_hoy">Hoy: ganaste %1$d min · gastaste %2$d min</string>
+    <string name="est_saldo_total">Desde el principio: ganaste %1$d min · gastaste %2$d min</string>
+    <string name="est_historial">Historial</string>
+    <string name="hist_completada">Sesión de %1$d min completada</string>
+    <string name="hist_cancelada">Sesión cancelada</string>
+    <string name="hist_cancelada_detalle">%1$s · %2$s de %3$s</string>
+    <string name="hist_desbloqueo">Desbloqueo de apps</string>
+    <string name="hist_mas">+%1$d min</string>
+    <string name="hist_menos">−%1$d min</string>
+    <string name="duracion_horas">%1$d h %2$d min</string>
+    <string name="fecha_hoy">Hoy, %1$s</string>
+    <string name="fecha_ayer">Ayer, %1$s</string>
+    <string name="fecha_otro">%1$s, %2$s</string>
+    <plurals name="dias">
+        <item quantity="one">%d día</item>
+        <item quantity="many">%d días</item>
+        <item quantity="other">%d días</item>
+    </plurals>
 </resources>
