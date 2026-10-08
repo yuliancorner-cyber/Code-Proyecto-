@@ -14,3 +14,7 @@ local.properties
 *.aab
 *.keystore
 !debug.keystore
+# Llaves de firma del APK de release: NUNCA deben subirse a GitHub.
+*.jks
+keystore.properties
+/app/release/

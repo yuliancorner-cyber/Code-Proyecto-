@@ -36,8 +36,8 @@ private val EsquemaClaro = lightColorScheme(
     onBackground = GrisTextoOscuro,
     surface = SuperficieClara,
     onSurface = GrisTextoOscuro,
-    tertiary = AmbarAlerta,
-    error = RojoCancelado
+    tertiary = AmbarClaro,
+    error = RojoClaro
 )
 
 /**

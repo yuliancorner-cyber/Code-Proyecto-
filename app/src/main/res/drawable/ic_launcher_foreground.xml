@@ -1,31 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Dibujo vectorial del candado que se ve en el icono de la app.
-     El lienzo es de 108x108; la parte visible garantizada (zona segura)
-     es solo el circulo central de unos 72x72, por eso el candado va al centro. -->
+<!-- Icono de FocusZone: un celular BOCA ABAJO (se ve su parte trasera, con la
+     camara) dentro de las cuatro esquinas verdes de la "zona de enfoque".
+
+     Lienzo de 108x108. Android recorta el icono con la forma de cada celular
+     (circulo, cuadrado redondeado...) y solo garantiza visible el circulo
+     central de radio 33 (centro 54,54): todo lo importante cabe ahi.
+     Tambien se usa como imagen de la pantalla de carga (splash). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Arco superior del candado -->
+    <!-- Esquinas de la zona (verde de acento) -->
     <path
         android:strokeColor="#4ADE80"
-        android:strokeWidth="6"
+        android:strokeWidth="3"
         android:strokeLineCap="round"
+        android:strokeLineJoin="round"
         android:fillColor="#00000000"
-        android:pathData="M45,52 V45 a9,9 0 0 1 18,0 V52" />
+        android:pathData="M38,35 V30 A4,4 0 0 1 42,26 H47" />
+    <path
+        android:strokeColor="#4ADE80"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M61,26 H66 A4,4 0 0 1 70,30 V35" />
+    <path
+        android:strokeColor="#4ADE80"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M70,73 V78 A4,4 0 0 1 66,82 H61" />
+    <path
+        android:strokeColor="#4ADE80"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M47,82 H42 A4,4 0 0 1 38,78 V73" />
 
-    <!-- Cuerpo del candado -->
-    <path
-        android:fillColor="#4ADE80"
-        android:pathData="M42,52 h24 a5,5 0 0 1 5,5 v18 a5,5 0 0 1 -5,5 h-24 a5,5 0 0 1 -5,-5 v-18 a5,5 0 0 1 5,-5 z" />
+    <!-- El celular, agrandado un 15% alrededor del centro para que se lea a tamano real -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="1.15"
+        android:scaleY="1.15">
+        <!-- Parte trasera del celular -->
+        <path
+            android:fillColor="#E2E8F0"
+            android:pathData="M49,33 H59 A5,5 0 0 1 64,38 V70 A5,5 0 0 1 59,75 H49 A5,5 0 0 1 44,70 V38 A5,5 0 0 1 49,33 Z" />
 
-    <!-- Ojo de la cerradura (del color del fondo, para que se vea calado) -->
-    <path
-        android:fillColor="#0F172A"
-        android:pathData="M54,60 m-3.5,0 a3.5,3.5 0 1 0 7,0 a3.5,3.5 0 1 0 -7,0 z" />
-    <path
-        android:fillColor="#0F172A"
-        android:pathData="M52.5,63 h3 v8 h-3 z" />
+        <!-- Modulo de camara -->
+        <path
+            android:fillColor="#0F172A"
+            android:pathData="M49.5,36 H52 A2.5,2.5 0 0 1 54.5,38.5 V45.5 A2.5,2.5 0 0 1 52,48 H49.5 A2.5,2.5 0 0 1 47,45.5 V38.5 A2.5,2.5 0 0 1 49.5,36 Z" />
+        <path
+            android:fillColor="#4ADE80"
+            android:pathData="M50.75,40 m-1.5,0 a1.5,1.5 0 1 0 3,0 a1.5,1.5 0 1 0 -3,0 Z" />
+        <path
+            android:fillColor="#64748B"
+            android:pathData="M50.75,44.5 m-1.5,0 a1.5,1.5 0 1 0 3,0 a1.5,1.5 0 1 0 -3,0 Z" />
+    </group>
 </vector>

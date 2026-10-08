@@ -42,12 +42,11 @@ object AppsInstaladas {
     )
 
     /**
-     * Apps que NUNCA se pueden bloquear, por seguridad: la propia FocusZone,
-     * los Ajustes (para poder desactivar cualquier cosa) y el telefono
+     * Apps que NUNCA se pueden bloquear, por seguridad (ademas de FocusZone
+     * misma, ver [esFocusZone]): los Ajustes (para poder desactivar cualquier cosa) y el telefono
      * (para poder llamar a emergencias siempre).
      */
     val NUNCA_BLOQUEAR = setOf(
-        "com.focuszone.app",
         "com.android.settings",
         "com.android.phone",
         "com.android.dialer",
@@ -56,6 +55,12 @@ object AppsInstaladas {
         "com.android.incallui",
         "com.android.emergency"
     )
+
+    /** FocusZone y FocusZone Dev (com.focuszone.app.debug) nunca se bloquean. */
+    fun esFocusZone(paquete: String): Boolean = paquete.startsWith("com.focuszone.app")
+
+    /** true si esta app no se puede marcar como distractora. */
+    fun protegida(paquete: String): Boolean = esFocusZone(paquete) || paquete in NUNCA_BLOQUEAR
 
     /**
      * Lee las apps que aparecen en el menu de aplicaciones.
@@ -71,7 +76,7 @@ object AppsInstaladas {
 
         encontradas
             .distinctBy { it.activityInfo.packageName }
-            .filter { it.activityInfo.packageName !in NUNCA_BLOQUEAR }
+            .filter { !protegida(it.activityInfo.packageName) }
             .map { info ->
                 val paquete = info.activityInfo.packageName
                 AppInstalada(

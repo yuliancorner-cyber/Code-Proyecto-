@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.focuszone.app.bloqueo.ModoSilencio
 import com.focuszone.app.logica.EstadoSesion
 import com.focuszone.app.sesion.SesionActual
@@ -20,6 +21,9 @@ import com.focuszone.app.ui.theme.FocusZoneTheme
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Debe ir ANTES de super.onCreate: muestra la pantalla de carga y luego
+        // pasa al tema normal de la app.
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         // Dibuja la app tambien detras de la barra de estado y la de navegacion,

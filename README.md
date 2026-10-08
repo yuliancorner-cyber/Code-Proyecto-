@@ -12,7 +12,7 @@ pierdes la recompensa. Al completar la sesión ganas créditos de "tiempo de pan
 
 ---
 
-## Estado actual: Fase 4 (estadísticas) — lista para probar
+## Estado actual: Fase 5 (pulido y APK final) — lista para probar
 
 Se puede usar a diario: eliges una meta, dejas el celular boca abajo, corre el
 cronómetro, y si lo levantas antes de tiempo te avisa y pierdes la recompensa.
@@ -26,11 +26,11 @@ un rato gastando el saldo que ganaste ese día.
 |---|---|---|
 | 0 | Proyecto Kotlin + Compose que compila e instala | ✅ Hecho |
 | 1 | MVP: zona simple sobre la cámara, detección boca-abajo por sensores, cronómetro, pantalla de bloqueo, créditos en Room | ✅ Hecho |
-| 2 | Zona AR real con ARCore (colocar, arrastrar, redimensionar, rotar) — se hará después de la 3 | Pendiente |
+| 2 | Zona AR real con ARCore (colocar, arrastrar, redimensionar, rotar) | Pendiente (opcional) |
 | 3a | No molestar automático + bloqueo de apps distractoras **durante la sesión** | ✅ Hecho |
 | 3b | Apps distractoras bloqueadas **siempre**; se desbloquean gastando los minutos ganados | ✅ Hecho |
-| 4 | Historial de sesiones y estadísticas de créditos | 🧪 Por probar |
-| 5 | Ícono, splash, modo oscuro, APK final | Pendiente |
+| 4 | Historial de sesiones y estadísticas de créditos | ✅ Hecho |
+| 5 | Ícono, splash, modo oscuro, APK final firmado | 🧪 Por probar |
 
 ### Reglas de una sesión
 
@@ -65,6 +65,59 @@ quedará anclada al escritorio con ARCore.
 
 En Android Studio: menú **Git › Pull…** (o el botón ↙ azul de arriba) y acepta.
 Descarga los cambios de GitHub. Luego **Run ▶**.
+
+## Fase 5: APK final
+
+### Dos apps: FocusZone y FocusZone Dev
+
+| | **FocusZone** | **FocusZone Dev** |
+|---|---|---|
+| Qué es | La versión final, para usar a diario | La versión de pruebas |
+| Cómo se instala | APK firmado (ver abajo) | Botón **Run ▶** de Android Studio |
+| Identificador | `com.focuszone.app` | `com.focuszone.app.debug` |
+| Datos | Los suyos | Los suyos (separados) |
+
+Pueden estar instaladas a la vez. **Activa el servicio de accesibilidad solo en
+una de las dos**, o ambas bloquearán a la vez.
+
+### Generar el APK firmado (Android Studio)
+
+1. **Build › Generate Signed App Bundle or APK…** › elige **APK** › Next.
+2. *Key store path* › **Create new…**
+   - **Key store path:** fuera del proyecto, p. ej.
+     `C:\Users\hpp\Documents\FocusZone-llave\focuszone.jks`
+   - **Password** (dos veces) y, en *Key*: **Alias** `focuszone`, su **Password**,
+     *Validity* 25 años, y en *Certificate* al menos tu nombre. OK.
+3. Next › variante **release** › **Create**.
+4. Al terminar, aviso abajo a la derecha › **locate**: el archivo es
+   `app\release\app-release.apk`.
+
+> ⚠️ **Guarda el archivo `.jks` y sus contraseñas para siempre** (copia en la nube
+> o en un USB, y las contraseñas en un gestor). Sin esa llave no podrás instalar
+> futuras versiones encima: tocaría desinstalar y perder los datos otra vez.
+> Nunca lo subas a GitHub (ya está excluido en `.gitignore`).
+
+### Instalarlo en el celular
+
+> ⚠️ **Se pierden las sesiones, el saldo y el historial actuales.** La app que
+> tienes ahora está firmada con la llave de desarrollo; Android no deja instalar
+> encima una con otra firma.
+
+1. **Desinstala FocusZone** (mantén pulsado el ícono › Desinstalar).
+2. Conecta el celular por USB en modo **Transferencia de archivos** y copia
+   `app-release.apk` a la carpeta **Download** del celular.
+3. En el celular abre la app **Archivos** › Download › toca el APK › **Instalar**.
+   Si pide permiso para "instalar apps desconocidas", concédelo a Archivos.
+   Si Xiaomi muestra un análisis de seguridad, **Continuar / Instalar de todos modos**.
+4. Abre FocusZone y vuelve a dar los permisos: cámara, notificaciones, y en ⚙
+   accesibilidad, No molestar y ventanas en segundo plano. Revisa también
+   **Ahorro de batería › Sin restricciones** e **Inicio automático**.
+
+### Futuras versiones
+
+Mismos pasos, **con la misma llave `.jks`** (Choose existing…), y se instala
+encima conservando los datos. El `versionCode` de `app/build.gradle.kts` debe
+subir en cada versión (lo subiré yo con cada cambio).
 
 ## Cómo probar la Fase 4
 

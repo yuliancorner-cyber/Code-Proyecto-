@@ -20,6 +20,10 @@ val VerdeMenta = Color(0xFFDCFCE7)       // fondo suave de acento (circulo del c
 val FondoClaro = Color(0xFFF8FAFC)
 val SuperficieClara = Color(0xFFFFFFFF)
 val GrisTextoOscuro = Color(0xFF0F172A)
+// En fondo claro, el ambar y el rojo brillantes no se leen (contraste 1.7:1 y
+// 2.8:1; el minimo para texto es 4.5:1). Versiones oscuras para el tema claro:
+val AmbarClaro = Color(0xFFB45309)     // 5.0:1 sobre blanco
+val RojoClaro = Color(0xFFB91C1C)      // 6.5:1 sobre blanco
 
 // --- Graficas (Fase 4) ---
 // Validados con el script de la guia de visualizacion (contraste, luminosidad

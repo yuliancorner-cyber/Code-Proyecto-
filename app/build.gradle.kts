@@ -26,22 +26,48 @@ android {
         // targetSdk = version de Android para la que la app esta "afinada".
         targetSdk = 35
 
-        versionCode = 2
-        versionName = "0.2-fase1"
+        // versionCode: numero interno que DEBE subir en cada APK que instales
+        // encima de otro. versionName: el que ves en Ajustes > Apps.
+        versionCode = 10
+        versionName = "1.0"
+
+        // Nombre visible de la app (en el menu y en Accesibilidad). La version
+        // de desarrollo lo cambia, ver buildTypes > debug.
+        manifestPlaceholders["nombreApp"] = "FocusZone"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
-        // "release" = version final optimizada. "debug" = version de desarrollo.
+        // "release" = la version final que instalas para usar a diario.
         release {
-            // Por ahora sin ofuscacion, para que los errores sean legibles.
-            isMinifyEnabled = false
+            // R8 = optimizador: quita codigo y recursos que no se usan y
+            // reduce el tamano del APK. Las reglas de que conservar estan en
+            // proguard-rules.pro (Room y Compose traen las suyas).
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+
+        // "debug" = la version que instala Android Studio con Run.
+        // Es una app APARTE ("FocusZone Dev", com.focuszone.app.debug) para que
+        // conviva con la version final firmada: puedes probar cambios sin
+        // desinstalar la app de uso diario ni perder sus datos.
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-dev"
+            manifestPlaceholders["nombreApp"] = "FocusZone Dev"
+        }
+    }
+
+    lint {
+        // Al generar el APK de release, Android Studio pasa una revision
+        // automatica ("lint"). Si encuentra algo grave lo muestra, pero no
+        // bloquea el APK: es una app personal y prefiero que puedas generarlo.
+        abortOnError = false
     }
 
     compileOptions {
@@ -68,6 +94,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
     implementation(libs.androidx.ui)

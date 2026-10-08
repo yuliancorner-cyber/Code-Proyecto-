@@ -14,6 +14,8 @@ kotlin = "2.0.21"
 coreKtx = "1.15.0"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
+# Pantalla de carga (splash) igual en todas las versiones de Android.
+coreSplashscreen = "1.0.1"
 # BOM = "Bill of Materials": fija de golpe versiones compatibles entre si
 # de TODAS las librerias de Jetpack Compose, para que no choquen.
 composeBom = "2024.12.01"
@@ -33,6 +35,7 @@ espressoCore = "3.6.1"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
 
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

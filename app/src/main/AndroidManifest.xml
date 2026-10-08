@@ -53,7 +53,7 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="${nombreApp}"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FocusZone">
@@ -62,8 +62,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.FocusZone"
+            android:label="${nombreApp}"
+            android:theme="@style/Theme.FocusZone.Splash"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity">
 
@@ -92,7 +92,7 @@
         <service
             android:name=".bloqueo.ServicioBloqueo"
             android:exported="true"
-            android:label="@string/accesibilidad_etiqueta"
+            android:label="${nombreApp}: bloqueo de apps"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />

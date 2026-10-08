@@ -106,8 +106,7 @@ class ServicioBloqueo : AccessibilityService() {
     }
 
     private fun revisar(paquete: String) {
-        if (paquete == packageName) return
-        if (paquete in AppsInstaladas.NUNCA_BLOQUEAR) return
+        if (AppsInstaladas.protegida(paquete)) return
         if (!AppsBloqueadas.contiene(this, paquete)) return
 
         when {
