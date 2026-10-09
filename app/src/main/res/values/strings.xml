@@ -115,4 +115,25 @@
         <item quantity="many">%d días</item>
         <item quantity="other">%d días</item>
     </plurals>
+
+    <!-- Clave de la configuracion -->
+    <string name="clave_titulo_crear">Crea tu clave</string>
+    <string name="clave_titulo_confirmar">Repite la clave</string>
+    <string name="clave_titulo_verificar">Introduce tu clave</string>
+    <string name="clave_titulo_actual">Clave actual</string>
+    <string name="clave_titulo_nueva">Nueva clave</string>
+    <string name="clave_sub_nueva">Protege la configuración del bloqueo. De 4 a 8 números.</string>
+    <string name="clave_sub_confirmar">Escríbela otra vez para comprobar que no hay errores.</string>
+    <string name="clave_sub_verificar">Para entrar en la configuración del bloqueo.</string>
+    <string name="clave_sub_actual">Para cambiarla, primero introduce la que tienes ahora.</string>
+    <string name="clave_incorrecta">Clave incorrecta. Te quedan %1$d intentos antes de tener que esperar.</string>
+    <string name="clave_espera">Demasiados intentos. Espera %1$d s y vuelve a probar.</string>
+    <string name="clave_no_coinciden">No coinciden. Empieza de nuevo.</string>
+    <string name="clave_olvidada">Si la olvidas no se puede recuperar: solo borrando los datos de FocusZone en Ajustes, y se pierde todo.</string>
+    <string name="clave_borrar">Borrar</string>
+    <string name="clave_ok">OK</string>
+    <string name="clave_cambiada">Clave cambiada</string>
+    <string name="seccion_clave">Clave de acceso</string>
+    <string name="clave_desc_config">Protege esta pantalla. Para cambiarla necesitas la clave actual.</string>
+    <string name="boton_cambiar_clave">Cambiar clave</string>
 </resources>

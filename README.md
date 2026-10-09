@@ -174,6 +174,25 @@ En la app, toca **⚙**:
 
 Luego marca tus apps distractoras en la lista de abajo.
 
+### Clave de la configuración
+
+La pantalla **⚙** está protegida con un **PIN de 4 a 8 números**:
+
+- **La primera vez** que tocas ⚙ creas la clave (escribirla y repetirla).
+- **Después**, ⚙ siempre la pide. Al salir de ⚙, o si la app pasa más de
+  2 minutos en segundo plano, se vuelve a pedir.
+- **Para cambiarla:** dentro de ⚙ › *Clave de acceso* › **Cambiar clave**: pide la
+  clave **actual** y luego la nueva dos veces.
+- **Tras 5 fallos seguidos** hay que esperar 30 s (luego 60 s, 90 s… hasta 5 min).
+- Se guarda solo un *hash* (PBKDF2 con sal), nunca el número.
+
+> ⚠️ **Si la olvidas no se puede recuperar.** La única salida es Ajustes ›
+> Aplicaciones › FocusZone › Almacenamiento › **Borrar datos**, que borra también
+> sesiones, saldo e historial.
+>
+> La clave protege la configuración *dentro* de FocusZone. Android siempre deja
+> desactivar el servicio de accesibilidad desde sus propios Ajustes.
+
 ### Si deja de bloquear
 
 HyperOS a veces detiene el servicio de accesibilidad aunque en Ajustes siga
@@ -192,9 +211,9 @@ Sin esto, HyperOS puede cortar la sesión o apagar el servicio de bloqueo.
 
 ### Pruebas automáticas
 
-La lógica de sesión, saldo y estadísticas tiene 35 pruebas que corren en el PC sin celular. En Android
+La lógica de sesión, saldo y estadísticas tiene 42 pruebas que corren en el PC sin celular. En Android
 Studio: panel izquierdo › `app/java/com.focuszone.app (test)/logica` › clic
-derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 35 en verde.
+derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 42 en verde.
 
 ### Si la detección es demasiado sensible (o poco)
 
@@ -219,6 +238,7 @@ app/src/main/java/com/focuszone/app/
     Recompensa.kt              Metas y fórmula de créditos
     ReglasSaldo.kt             Saldo diario, opciones de desbloqueo, inicio del día
     Estadisticas.kt            Racha, % de éxito, minutos por día e historial
+    ReglasClave.kt             PIN: validar, hash PBKDF2 y esperas tras fallos
     EstadoSesion.kt            Los 6 estados posibles de una sesión
     DetectorPosicion.kt        Acelerómetro → "boca abajo y quieto"
     MotorSesion.kt             Máquina de estados: arranque, alerta, cancelación, meta
@@ -230,6 +250,7 @@ app/src/main/java/com/focuszone/app/
     Desbloqueo.kt              Ventana de desbloqueo activa (hasta qué hora)
     GestorSaldo.kt             Saldo de hoy y gastar minutos
     SolicitudDesbloqueo.kt     "Intentaste abrir X": aviso del servicio a la pantalla
+    ClaveAcceso.kt             Guarda y comprueba el PIN de ⚙ (con esperas tras fallos)
     AppsBloqueadas.kt          Tu lista de apps distractoras (guardada en el celular)
     AppsInstaladas.kt          Lee las apps del menú; sugeridas y nunca-bloqueables
     ModoSilencio.kt            Activa/restaura No molestar sin pisar tu configuración
@@ -247,7 +268,8 @@ app/src/main/java/com/focuszone/app/
     PantallaSesion.kt          Candado, anillo y cronómetro
     PantallaAlerta.kt          "No se permite el celular" + cuenta atrás
     PantallaResultado.kt       Completada / cancelada
-    PantallaBloqueo.kt         Permisos + elegir apps distractoras
+    PantallaBloqueo.kt         Permisos + elegir apps distractoras + cambiar clave
+    PantallaClave.kt           PIN con teclado propio: crear, pedir y cambiar la clave
     PantallaDesbloqueo.kt      "X está bloqueada · ¿Desbloquear 5/10/15 min?"
     PantallaEstadisticas.kt    Racha, éxito, gráfica de la semana, saldo e historial
     componentes/               Cámara, zona, anillo, utilidades

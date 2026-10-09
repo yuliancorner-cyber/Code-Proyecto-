@@ -73,7 +73,7 @@ fun recordarEstadoPermisos(): EstadoPermisos {
 
 /** Configuracion del bloqueo: permisos especiales + eleccion de apps distractoras. */
 @Composable
-fun PantallaBloqueo(onVolver: () -> Unit) {
+fun PantallaBloqueo(onVolver: () -> Unit, onCambiarClave: () -> Unit) {
     // Boton "atras" del celular = volver a la pantalla de inicio de FocusZone.
     BackHandler(onBack = onVolver)
 
@@ -158,6 +158,17 @@ fun PantallaBloqueo(onVolver: () -> Unit) {
                     concedido = false,
                     textoBoton = stringResource(R.string.permiso_abrir_ajustes_app),
                     onActivar = { PermisosBloqueo.abrirAjustesDeLaApp(context) }
+                )
+            }
+
+            item { TituloSeccion(stringResource(R.string.seccion_clave)) }
+            item {
+                TarjetaPermiso(
+                    titulo = stringResource(R.string.seccion_clave),
+                    descripcion = stringResource(R.string.clave_desc_config),
+                    concedido = false,
+                    textoBoton = stringResource(R.string.boton_cambiar_clave),
+                    onActivar = onCambiarClave
                 )
             }
 
