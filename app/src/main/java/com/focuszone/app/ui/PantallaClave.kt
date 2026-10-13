@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,7 +32,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -233,35 +234,56 @@ private fun TecladoNumerico(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         filas.forEach { fila ->
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                fila.forEach { d -> TeclaTexto(d, habilitado && puedeEscribir) { onDigito(d) } }
+                fila.forEach { d -> TeclaDigito(d, habilitado && puedeEscribir) { onDigito(d) } }
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
             TeclaBorrar(habilitado, onBorrar)
-            TeclaTexto("0", habilitado && puedeEscribir) { onDigito("0") }
-            TeclaTexto(stringResource(R.string.clave_ok), habilitado && puedeAceptar, destacada = true, onClick = onAceptar)
+            TeclaDigito("0", habilitado && puedeEscribir) { onDigito("0") }
+            TeclaAceptar(habilitado && puedeAceptar, onAceptar)
         }
     }
 }
 
+/**
+ * Tecla de un numero. Desactivada (al llegar a 8 digitos) solo cambia el
+ * color del texto: sin capas de transparencia, que en algunos celulares se
+ * dibujaban mal.
+ */
 @Composable
-private fun TeclaTexto(texto: String, habilitada: Boolean, destacada: Boolean = false, onClick: () -> Unit) {
+private fun TeclaDigito(texto: String, habilitada: Boolean, onClick: () -> Unit) {
     val colores = MaterialTheme.colorScheme
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(72.dp)
             .clip(CircleShape)
-            .background(if (destacada) colores.primary else colores.onBackground.copy(alpha = 0.08f))
+            .background(colores.onBackground.copy(alpha = 0.08f))
             .clickable(enabled = habilitada, onClick = onClick)
-            .alpha(if (habilitada) 1f else 0.35f)
     ) {
         Text(
             texto,
-            fontSize = if (destacada) 18.sp else 26.sp,
-            fontWeight = if (destacada) FontWeight.Bold else FontWeight.Normal,
-            color = if (destacada) colores.onPrimary else colores.onBackground
+            fontSize = 26.sp,
+            color = if (habilitada) colores.onBackground else colores.onBackground.copy(alpha = 0.3f)
         )
+    }
+}
+
+/**
+ * Tecla OK: un boton estandar de Material, que ya resuelve bien sus colores
+ * activado (verde) y desactivado (gris). Antes era un circulo hecho a mano y,
+ * en el Xiaomi, el fondo verde desaparecia justo al activarse.
+ */
+@Composable
+private fun TeclaAceptar(habilitada: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        enabled = habilitada,
+        shape = CircleShape,
+        contentPadding = PaddingValues(0.dp),
+        modifier = Modifier.size(72.dp)
+    ) {
+        Text(stringResource(R.string.clave_ok), fontSize = 18.sp, fontWeight = FontWeight.Bold)
     }
 }
 
