@@ -12,7 +12,7 @@ pierdes la recompensa. Al completar la sesión ganas créditos de "tiempo de pan
 
 ---
 
-## Estado actual: Fase 5 (pulido y APK final) — lista para probar
+## Estado actual: versión 1.0 terminada y en uso
 
 Se puede usar a diario: eliges una meta, dejas el celular boca abajo, corre el
 cronómetro, y si lo levantas antes de tiempo te avisa y pierdes la recompensa.
@@ -30,7 +30,7 @@ un rato gastando el saldo que ganaste ese día.
 | 3a | No molestar automático + bloqueo de apps distractoras **durante la sesión** | ✅ Hecho |
 | 3b | Apps distractoras bloqueadas **siempre**; se desbloquean gastando los minutos ganados | ✅ Hecho |
 | 4 | Historial de sesiones y estadísticas de créditos | ✅ Hecho |
-| 5 | Ícono, splash, modo oscuro, APK final firmado | 🧪 Por probar |
+| 5 | Ícono, splash, modo oscuro, APK final firmado, PIN de configuración | ✅ Hecho |
 
 ### Reglas de una sesión
 
