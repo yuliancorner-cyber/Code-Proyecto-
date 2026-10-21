@@ -82,6 +82,8 @@ class ServicioBloqueo : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         _funcionando.value = true
+        // Si el guardian no estaba corriendo (p. ej. tras un reinicio), lo arranca.
+        ServicioGuardian.iniciar(this)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {

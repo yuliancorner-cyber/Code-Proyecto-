@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.focuszone.app.bloqueo.ModoSilencio
+import com.focuszone.app.bloqueo.ServicioGuardian
 import com.focuszone.app.logica.EstadoSesion
 import com.focuszone.app.sesion.SesionActual
 import com.focuszone.app.ui.AppFocusZone
@@ -36,6 +37,9 @@ class MainActivity : ComponentActivity() {
         if (SesionActual.estado.value == EstadoSesion.Inactivo) {
             ModoSilencio.restaurar(this)
         }
+
+        // Asegura que el guardian del bloqueo este corriendo (si hay apps marcadas).
+        ServicioGuardian.iniciar(this)
 
         // setContent es donde le decimos a Compose QUE dibujar.
         setContent {

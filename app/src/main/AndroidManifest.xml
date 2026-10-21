@@ -20,6 +20,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
+    <!-- Arrancar el guardian del bloqueo al encender el celular. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- Evita que el sistema duerma los sensores durante la sesion. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
@@ -85,6 +88,28 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Temporizador de sesion de estudio que vigila el acelerometro para detectar si el usuario levanta el celular" />
         </service>
+
+        <!-- Guardian: mantiene vivo el bloqueo de apps frente al ahorro de
+             bateria de HyperOS/MIUI y avisa si se detiene. -->
+        <service
+            android:name=".bloqueo.ServicioGuardian"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Mantiene activo el bloqueo de apps distractoras elegidas por el usuario y avisa si el sistema lo detiene" />
+        </service>
+
+        <!-- Arranca el guardian al encender el celular o al actualizar la app. -->
+        <receiver
+            android:name=".bloqueo.ReceptorArranque"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
 
         <!-- Servicio de accesibilidad que bloquea las apps distractoras.
              El permiso BIND_ACCESSIBILITY_SERVICE garantiza que SOLO Android

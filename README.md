@@ -195,13 +195,28 @@ La pantalla **⚙** está protegida con un **PIN de 4 a 8 números**:
 
 ### Si deja de bloquear
 
-HyperOS a veces detiene el servicio de accesibilidad aunque en Ajustes siga
-"activado". FocusZone lo detecta: el panel de inicio dice *"El bloqueo se
-detuvo"* y en ⚙ la tarjeta de accesibilidad lo explica en rojo.
+HyperOS "limpia" las apps en segundo plano y con ello detiene el servicio de
+accesibilidad (a veces sigue "activado" en Ajustes pero no funciona, a veces el
+sistema lo apaga). FocusZone se defiende así (desde la v1.0.1):
 
-Arreglo: Ajustes › Accesibilidad › FocusZone › **desactívalo y vuelve a
-activarlo**. Para que no se repita: Ajustes › Aplicaciones › FocusZone ›
-**Ahorro de batería › Sin restricciones** e **Inicio automático** activado.
+- **Guardián:** mientras haya apps marcadas, un servicio permanente con la
+  notificación discreta *"FocusZone protege tus apps"* hace que el sistema
+  la mate mucho menos. Arranca solo al abrir la app y al encender el celular.
+- **Vigilante:** cada minuto comprueba el bloqueo. Si se detuvo, llega la
+  notificación *"El bloqueo de apps se detuvo"*: tócala, desactiva y vuelve a
+  activar FocusZone en Accesibilidad.
+
+Ajustes de Xiaomi que **más** ayudan (hazlos todos):
+
+1. **Bloquear FocusZone en recientes:** abre la vista de apps recientes,
+   mantén pulsada la tarjeta de FocusZone › **candado 🔒**. Así *"Limpiar todo"*
+   no la cierra.
+2. Ajustes › Aplicaciones › FocusZone › **Ahorro de batería › Sin
+   restricciones** e **Inicio automático** activado.
+3. App **Seguridad** › ⚙ (arriba a la derecha) › desactiva **"Limpiar memoria
+   al bloquear la pantalla"** (o *"Liberar memoria"*), si existe en tu versión.
+4. No ocultes la notificación del guardián: si la silencias da igual, pero no
+   desactives su canal.
 
 ### Ajustes del Xiaomi (si no los hiciste en la Fase 1)
 
@@ -211,9 +226,9 @@ Sin esto, HyperOS puede cortar la sesión o apagar el servicio de bloqueo.
 
 ### Pruebas automáticas
 
-La lógica de sesión, saldo y estadísticas tiene 42 pruebas que corren en el PC sin celular. En Android
+La lógica de sesión, saldo y estadísticas tiene 47 pruebas que corren en el PC sin celular. En Android
 Studio: panel izquierdo › `app/java/com.focuszone.app (test)/logica` › clic
-derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 42 en verde.
+derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 47 en verde.
 
 ### Si la detección es demasiado sensible (o poco)
 
@@ -239,6 +254,7 @@ app/src/main/java/com/focuszone/app/
     ReglasSaldo.kt             Saldo diario, opciones de desbloqueo, inicio del día
     Estadisticas.kt            Racha, % de éxito, minutos por día e historial
     ReglasClave.kt             PIN: validar, hash PBKDF2 y esperas tras fallos
+    ReglasGuardian.kt          Cuándo considerar caído el bloqueo y cuándo avisar
     EstadoSesion.kt            Los 6 estados posibles de una sesión
     DetectorPosicion.kt        Acelerómetro → "boca abajo y quieto"
     MotorSesion.kt             Máquina de estados: arranque, alerta, cancelación, meta
@@ -247,6 +263,8 @@ app/src/main/java/com/focuszone/app/
     SesionActual.kt            Puente servicio ↔ pantallas
   bloqueo/                   Bloqueo de apps y No molestar (Fase 3)
     ServicioBloqueo.kt         Servicio de accesibilidad: detecta y bloquea apps
+    ServicioGuardian.kt        Servicio permanente: mantiene vivo el bloqueo y avisa si se detiene
+    ReceptorArranque.kt        Arranca el guardián al encender el celular
     Desbloqueo.kt              Ventana de desbloqueo activa (hasta qué hora)
     GestorSaldo.kt             Saldo de hoy y gastar minutos
     SolicitudDesbloqueo.kt     "Intentaste abrir X": aviso del servicio a la pantalla

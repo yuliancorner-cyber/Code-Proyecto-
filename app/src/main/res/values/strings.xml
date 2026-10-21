@@ -136,4 +136,13 @@
     <string name="seccion_clave">Clave de acceso</string>
     <string name="clave_desc_config">Protege esta pantalla. Para cambiarla necesitas la clave actual.</string>
     <string name="boton_cambiar_clave">Cambiar clave</string>
+
+    <!-- Guardian del bloqueo -->
+    <string name="canal_guardian">Protección del bloqueo</string>
+    <string name="canal_avisos_bloqueo">Avisos del bloqueo</string>
+    <string name="guardian_titulo">FocusZone protege tus apps</string>
+    <string name="guardian_texto">Mantiene activo el bloqueo de tus apps distractoras.</string>
+    <string name="aviso_bloqueo_titulo">El bloqueo de apps se detuvo</string>
+    <string name="aviso_bloqueo_detenido">El sistema detuvo el servicio de accesibilidad de FocusZone. Toca aquí, desactívalo y vuelve a activarlo.</string>
+    <string name="aviso_bloqueo_desactivado">El servicio de accesibilidad de FocusZone está desactivado. Toca aquí para volver a activarlo.</string>
 </resources>

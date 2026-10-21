@@ -28,8 +28,8 @@ android {
 
         // versionCode: numero interno que DEBE subir en cada APK que instales
         // encima de otro. versionName: el que ves en Ajustes > Apps.
-        versionCode = 10
-        versionName = "1.0"
+        versionCode = 11
+        versionName = "1.0.1"
 
         // Nombre visible de la app (en el menu y en Accesibilidad). La version
         // de desarrollo lo cambia, ver buildTypes > debug.
