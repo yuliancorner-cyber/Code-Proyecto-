@@ -65,7 +65,7 @@ fun AppFocusZone() {
     when (val actual = estado) {
         EstadoSesion.Inactivo, is EstadoSesion.Esperando ->
             if (actual == EstadoSesion.Inactivo && SolicitudDesbloqueo.vigente(solicitud)) {
-                PantallaDesbloqueo(paquete = solicitud!!.paquete, saldoHoy = saldoHoy)
+                PantallaDesbloqueo(paquete = solicitud!!.paquete, saldoHoy = saldoHoy, seccion = solicitud!!.seccion)
             } else if (extra == PantallaExtra.BLOQUEO && actual == EstadoSesion.Inactivo) {
                 if (configDesbloqueada) {
                     PantallaBloqueo(

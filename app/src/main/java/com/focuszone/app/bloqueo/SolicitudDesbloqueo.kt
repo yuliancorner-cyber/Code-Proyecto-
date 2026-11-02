@@ -1,5 +1,6 @@
 package com.focuszone.app.bloqueo
 
+import com.focuszone.app.logica.Subventana
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 object SolicitudDesbloqueo {
 
-    data class Solicitud(val paquete: String, val cuandoMillis: Long)
+    /** [seccion] != null si lo bloqueado no es la app entera sino una seccion (p. ej. Reels). */
+    data class Solicitud(val paquete: String, val cuandoMillis: Long, val seccion: Subventana? = null)
 
     /** Una solicitud mas vieja que esto se ignora (te fuiste sin decidir). */
     private const val VIGENCIA_MS = 60_000L
@@ -22,8 +24,8 @@ object SolicitudDesbloqueo {
     private val _actual = MutableStateFlow<Solicitud?>(null)
     val actual: StateFlow<Solicitud?> = _actual.asStateFlow()
 
-    fun pedir(paquete: String) {
-        _actual.value = Solicitud(paquete, System.currentTimeMillis())
+    fun pedir(paquete: String, seccion: Subventana? = null) {
+        _actual.value = Solicitud(paquete, System.currentTimeMillis(), seccion)
     }
 
     fun limpiar() {

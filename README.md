@@ -12,13 +12,17 @@ pierdes la recompensa. Al completar la sesión ganas créditos de "tiempo de pan
 
 ---
 
-## Estado actual: versión 1.0 terminada y en uso
+## Estado actual: versión 1.1 (bloqueo de secciones)
 
 Se puede usar a diario: eliges una meta, dejas el celular boca abajo, corre el
 cronómetro, y si lo levantas antes de tiempo te avisa y pierdes la recompensa.
 Durante la sesión el celular entra en No molestar. Las apps que marques como
 distractoras quedan bloqueadas **siempre**: fuera de las sesiones puedes abrirlas
 un rato gastando el saldo que ganaste ese día.
+
+Desde la v1.1 también se pueden bloquear **secciones** sin bloquear la app
+entera: la pestaña **Novedades de WhatsApp** (estados y canales) y las
+**Historias** y **Reels de Instagram**. Ver *"Bloqueo de secciones"* más abajo.
 
 ### Hoja de ruta
 
@@ -218,6 +222,33 @@ Ajustes de Xiaomi que **más** ayudan (hazlos todos):
 4. No ocultes la notificación del guardián: si la silencias da igual, pero no
    desactives su canal.
 
+### Bloqueo de secciones (v1.1)
+
+En ⚙ › **Secciones de apps** marca lo que quieras bloquear. Siguen las mismas
+reglas que las apps: en sesión, siempre bloqueadas; fuera de ella, al entrar te
+saca de la app (antes pulsa "atrás" para que, al volver, quedes en Chats o en el
+Inicio) y FocusZone ofrece desbloquear con tu saldo.
+
+**Una sola vez:** tras actualizar a la v1.1, en Ajustes › Accesibilidad
+desactiva y vuelve a activar FocusZone. Ahora necesita ver la estructura de
+la pantalla de WhatsApp e Instagram (qué pestaña está abierta), y Android
+puede mostrar un aviso más serio al activarlo. Nunca lee tus mensajes.
+
+Cómo probarlo:
+1. Marca *Novedades de WhatsApp*. Abre WhatsApp: en Chats no pasa nada. Toca
+   **Novedades** → te saca y aparece *"Bloqueado: Novedades de WhatsApp"*.
+2. Marca *Reels de Instagram*. Toca la pestaña **Reels** → te saca. Prueba
+   también abrir un reel desde un chat.
+3. Marca *Historias de Instagram*. Toca una historia de la fila de arriba → te saca.
+4. Desbloquea 5 min con saldo: todo queda libre ese rato.
+
+**Si alguna sección no se bloquea:** WhatsApp e Instagram cambian por dentro con
+sus actualizaciones. Abre esa sección, vuelve a FocusZone › ⚙ › **Diagnóstico de
+secciones › Ver diagnóstico** y haz una captura: muestra lo que FocusZone vio
+(pantalla interna, pestaña seleccionada y nombres internos), con eso se ajustan
+las pistas en `logica/ReglasSubventanas.kt`. Truco: desbloquea unos minutos con
+saldo antes de mirar, así puedes navegar sin que te saque.
+
 ### Ajustes del Xiaomi (si no los hiciste en la Fase 1)
 
 **Ajustes › Aplicaciones › Administrar aplicaciones › FocusZone:**
@@ -226,9 +257,9 @@ Sin esto, HyperOS puede cortar la sesión o apagar el servicio de bloqueo.
 
 ### Pruebas automáticas
 
-La lógica de sesión, saldo y estadísticas tiene 47 pruebas que corren en el PC sin celular. En Android
+La lógica de sesión, saldo, estadísticas y secciones tiene 60 pruebas que corren en el PC sin celular. En Android
 Studio: panel izquierdo › `app/java/com.focuszone.app (test)/logica` › clic
-derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 47 en verde.
+derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 60 en verde.
 
 ### Si la detección es demasiado sensible (o poco)
 
@@ -255,6 +286,7 @@ app/src/main/java/com/focuszone/app/
     Estadisticas.kt            Racha, % de éxito, minutos por día e historial
     ReglasClave.kt             PIN: validar, hash PBKDF2 y esperas tras fallos
     ReglasGuardian.kt          Cuándo considerar caído el bloqueo y cuándo avisar
+    ReglasSubventanas.kt       Reconoce Novedades (WhatsApp), Historias y Reels (Instagram)
     EstadoSesion.kt            Los 6 estados posibles de una sesión
     DetectorPosicion.kt        Acelerómetro → "boca abajo y quieto"
     MotorSesion.kt             Máquina de estados: arranque, alerta, cancelación, meta
@@ -262,7 +294,7 @@ app/src/main/java/com/focuszone/app/
     ServicioSesion.kt          Servicio en primer plano: sensores, cronómetro, vibración, guardar
     SesionActual.kt            Puente servicio ↔ pantallas
   bloqueo/                   Bloqueo de apps y No molestar (Fase 3)
-    ServicioBloqueo.kt         Servicio de accesibilidad: detecta y bloquea apps
+    ServicioBloqueo.kt         Servicio de accesibilidad: detecta y bloquea apps y secciones
     ServicioGuardian.kt        Servicio permanente: mantiene vivo el bloqueo y avisa si se detiene
     ReceptorArranque.kt        Arranca el guardián al encender el celular
     Desbloqueo.kt              Ventana de desbloqueo activa (hasta qué hora)
@@ -270,6 +302,8 @@ app/src/main/java/com/focuszone/app/
     SolicitudDesbloqueo.kt     "Intentaste abrir X": aviso del servicio a la pantalla
     ClaveAcceso.kt             Guarda y comprueba el PIN de ⚙ (con esperas tras fallos)
     AppsBloqueadas.kt          Tu lista de apps distractoras (guardada en el celular)
+    SeccionesBloqueadas.kt     Secciones marcadas (Novedades, Historias, Reels)
+    Diagnostico.kt             Lo último que el servicio vio en WhatsApp/Instagram
     AppsInstaladas.kt          Lee las apps del menú; sugeridas y nunca-bloqueables
     ModoSilencio.kt            Activa/restaura No molestar sin pisar tu configuración
     PermisosBloqueo.kt         Comprueba y abre los ajustes de los permisos especiales
@@ -286,7 +320,7 @@ app/src/main/java/com/focuszone/app/
     PantallaSesion.kt          Candado, anillo y cronómetro
     PantallaAlerta.kt          "No se permite el celular" + cuenta atrás
     PantallaResultado.kt       Completada / cancelada
-    PantallaBloqueo.kt         Permisos + elegir apps distractoras + cambiar clave
+    PantallaBloqueo.kt         Permisos + secciones + apps distractoras + clave + diagnóstico
     PantallaClave.kt           PIN con teclado propio: crear, pedir y cambiar la clave
     PantallaDesbloqueo.kt      "X está bloqueada · ¿Desbloquear 5/10/15 min?"
     PantallaEstadisticas.kt    Racha, éxito, gráfica de la semana, saldo e historial

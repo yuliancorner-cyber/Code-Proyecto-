@@ -20,8 +20,8 @@ import com.focuszone.app.R
 import com.focuszone.app.logica.ReglasGuardian
 
 /**
- * Servicio "guardian": corre todo el tiempo mientras tengas apps marcadas como
- * distractoras.
+ * Servicio "guardian": corre todo el tiempo mientras tengas apps o secciones
+ * (Reels, Novedades...) marcadas para bloquear.
  *
  * Por que existe: HyperOS/MIUI "limpia" las apps en segundo plano para ahorrar
  * bateria, y al hacerlo detiene el servicio de accesibilidad que bloquea las
@@ -40,13 +40,18 @@ class ServicioGuardian : Service() {
         private const val ID_NOTIF_GUARDIAN = 3
         private const val ID_NOTIF_AVISO = 4
 
+        /** true si hay apps o secciones marcadas: hay algo que proteger. */
+        fun hayAlgoQueProteger(context: Context): Boolean =
+            AppsBloqueadas.observar(context).value.isNotEmpty() ||
+                SeccionesBloqueadas.actuales(context).isNotEmpty()
+
         /**
-         * Arranca el guardian si hay apps marcadas. Seguro de llamar muchas veces.
+         * Arranca el guardian si hay algo marcado. Seguro de llamar muchas veces.
          * Si Android no deja arrancarlo en ese momento (p. ej. desde segundo
          * plano), no pasa nada: se intentara la proxima vez que abras la app.
          */
         fun iniciar(context: Context) {
-            if (AppsBloqueadas.observar(context).value.isEmpty()) return
+            if (!hayAlgoQueProteger(context)) return
             try {
                 ContextCompat.startForegroundService(context, Intent(context, ServicioGuardian::class.java))
             } catch (e: Exception) {
@@ -56,6 +61,11 @@ class ServicioGuardian : Service() {
 
         fun detener(context: Context) {
             context.stopService(Intent(context, ServicioGuardian::class.java))
+        }
+
+        /** Tras cambiar lo marcado: arranca o apaga el guardian segun haga falta. */
+        fun actualizar(context: Context) {
+            if (hayAlgoQueProteger(context)) iniciar(context) else detener(context)
         }
     }
 
@@ -96,7 +106,7 @@ class ServicioGuardian : Service() {
 
     private fun revisar() {
         val estado = ReglasGuardian.estado(
-            hayAppsMarcadas = AppsBloqueadas.observar(this).value.isNotEmpty(),
+            hayAppsMarcadas = hayAlgoQueProteger(this),
             accesibilidadActivada = PermisosBloqueo.accesibilidadActiva(this),
             servicioFuncionando = ServicioBloqueo.funcionando.value
         )

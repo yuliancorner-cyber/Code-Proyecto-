@@ -53,6 +53,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.focuszone.app.R
 import com.focuszone.app.bloqueo.AppsBloqueadas
+import com.focuszone.app.bloqueo.SeccionesBloqueadas
 import com.focuszone.app.bloqueo.Desbloqueo
 import com.focuszone.app.logica.EstadoSesion
 import com.focuszone.app.logica.Recompensa
@@ -93,8 +94,11 @@ fun PantallaInicio(
     // --- Estado del bloqueo de apps (para la linea de aviso del panel) ------
     val permisos = recordarEstadoPermisos()
     val appsBloqueadas by remember { AppsBloqueadas.observar(context) }.collectAsStateWithLifecycle()
-    val bloqueoListo = permisos.accesibilidadFuncionando && appsBloqueadas.isNotEmpty()
+    val secciones by remember { SeccionesBloqueadas.observar(context) }.collectAsStateWithLifecycle()
+    val bloqueoListo = permisos.accesibilidadFuncionando && (appsBloqueadas.isNotEmpty() || secciones.isNotEmpty())
     val textoBloqueo = when {
+        bloqueoListo && secciones.isNotEmpty() ->
+            stringResource(R.string.inicio_bloqueo_activo_secciones, appsBloqueadas.size, secciones.size)
         bloqueoListo -> stringResource(R.string.inicio_bloqueo_activo, appsBloqueadas.size)
         permisos.accesibilidadDetenida -> stringResource(R.string.inicio_bloqueo_detenido)
         else -> stringResource(R.string.inicio_bloqueo_configurar)

@@ -41,19 +41,22 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.focuszone.app.R
 import com.focuszone.app.bloqueo.GestorSaldo
+import com.focuszone.app.bloqueo.SeccionesBloqueadas
 import com.focuszone.app.bloqueo.SolicitudDesbloqueo
 import com.focuszone.app.logica.ReglasSaldo
+import com.focuszone.app.logica.Subventana
 import kotlinx.coroutines.launch
 
 /**
  * Aparece cuando intentas abrir una app bloqueada fuera de una sesion:
- * "Instagram esta bloqueada. ¿Desbloquear 5 / 10 / 15 min?".
+ * "Instagram esta bloqueada. ¿Desbloquear 5 / 10 / 15 min?". Si lo
+ * bloqueado es solo una seccion, [seccion] dice cual ("Bloqueado: Reels...").
  *
  * Al elegir, se descuenta del saldo de hoy, todas tus apps distractoras
  * quedan libres ese rato y se abre la app que querias.
  */
 @Composable
-fun PantallaDesbloqueo(paquete: String, saldoHoy: Int) {
+fun PantallaDesbloqueo(paquete: String, saldoHoy: Int, seccion: Subventana? = null) {
     val context = LocalContext.current
     val alcance = rememberCoroutineScope()
     val colores = MaterialTheme.colorScheme
@@ -83,7 +86,11 @@ fun PantallaDesbloqueo(paquete: String, saldoHoy: Int) {
 
         Spacer(Modifier.height(24.dp))
         Text(
-            text = stringResource(R.string.desbloqueo_titulo, app.nombre),
+            text = if (seccion == null) {
+                stringResource(R.string.desbloqueo_titulo, app.nombre)
+            } else {
+                stringResource(R.string.desbloqueo_titulo_seccion, stringResource(SeccionesBloqueadas.nombre(seccion)))
+            },
             style = MaterialTheme.typography.headlineMedium,
             color = colores.onBackground,
             textAlign = TextAlign.Center

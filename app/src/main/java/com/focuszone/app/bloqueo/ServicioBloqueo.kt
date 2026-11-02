@@ -3,15 +3,20 @@ package com.focuszone.app.bloqueo
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Toast
 import com.focuszone.app.MainActivity
 import com.focuszone.app.R
+import com.focuszone.app.logica.ReglasSubventanas
+import com.focuszone.app.logica.Subventana
+import com.focuszone.app.logica.VistaApp
 import com.focuszone.app.sesion.SesionActual
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,12 +30,14 @@ import kotlinx.coroutines.flow.asStateFlow
  * avisos de lo que pasa en pantalla. Por eso es tan potente y Android exige
  * activarlo a mano.
  *
- * Que usamos de el: SOLO el aviso "cambio la ventana principal" y, de ese
- * aviso, SOLO el nombre del paquete de la app que se abrio. No leemos texto,
- * ni botones, ni lo que escribes (ver res/xml/config_bloqueo.xml:
- * canRetrieveWindowContent = false).
+ * Que usamos de el:
+ *  - En todas las apps: SOLO el nombre del paquete de la app que se abrio.
+ *  - En WhatsApp e Instagram, y solo si marcaste alguna de sus secciones:
+ *    la estructura de la pantalla (nombres internos de los elementos y cual
+ *    pestaña esta seleccionada) para saber si estas en Reels, Historias o
+ *    Novedades. Nunca el texto de los mensajes ni lo que escribes.
  *
- * Reglas, cuando abres una app de tu lista:
+ * Reglas, cuando abres una app de tu lista o una seccion marcada:
  *  1. Hay una sesion de estudio en marcha -> bloqueada siempre (vuelves a la sesion).
  *  2. Tienes una ventana de desbloqueo abierta -> se permite, y se programa
  *     una revision para cuando la ventana se acabe.
@@ -41,12 +48,30 @@ class ServicioBloqueo : AccessibilityService() {
     companion object {
         private const val TAG = "ServicioBloqueo"
 
+        /** Palabras de los ids que interesan en el diagnostico (el resto es ruido). */
+        private val PISTAS_DIAGNOSTICO = listOf("reel", "clip", "status", "newsletter", "update", "tab", "story")
+
         /**
          * Espera entre "pulsar inicio" y abrir FocusZone. Android ejecuta el
          * "inicio" con un pequeno retraso: si abrimos FocusZone de inmediato,
          * a veces el inicio llega DESPUES y la tapa (solo se veia el escritorio).
          */
         private const val RETRASO_ABRIR_FOCUSZONE_MS = 400L
+
+        /** Espera entre cada "atras" al salir de una seccion (deja que la app reaccione). */
+        private const val RETRASO_ATRAS_MS = 200L
+
+        /**
+         * WhatsApp e Instagram cambian la pantalla muchas veces por segundo (un
+         * reel en marcha, por ejemplo): miramos como mucho una vez cada este rato.
+         */
+        private const val RETRASO_ESCANEO_MS = 400L
+
+        /** Tras sacarte de una seccion, no volver a mirar en este rato (la app aun se esta cerrando). */
+        private const val PAUSA_TRAS_BLOQUEO_MS = 2_500L
+
+        /** Tope de elementos a revisar por pantalla, para no gastar bateria. */
+        private const val MAX_NODOS = 1_500
 
         private val _funcionando = MutableStateFlow(false)
 
@@ -64,10 +89,28 @@ class ServicioBloqueo : AccessibilityService() {
     /** Ultima app "de verdad" en pantalla (sin contar teclado ni barra del sistema). */
     private var paqueteActual: String? = null
 
+    /** Ultima pantalla interna (Activity) de esa app, p. ej. "...StatusPlaybackActivity". */
+    private var claseActual: String? = null
+
+    private var escaneoPendiente = false
+    private var ultimoBloqueoSeccionMs = 0L
+
     /** Al acabarse la ventana de desbloqueo: si sigues en una app bloqueada, te saca. */
     private val revisarAlExpirar = Runnable {
         val paquete = paqueteActual ?: return@Runnable
         sinCaerse { revisar(paquete) }
+    }
+
+    private val escaneo = Runnable {
+        escaneoPendiente = false
+        sinCaerse { escanearSecciones() }
+    }
+
+    private val irAInicio = Runnable {
+        sinCaerse {
+            performGlobalAction(GLOBAL_ACTION_HOME)
+            manejador.postDelayed(abrirFocusZone, RETRASO_ABRIR_FOCUSZONE_MS)
+        }
     }
 
     private val abrirFocusZone = Runnable {
@@ -87,12 +130,24 @@ class ServicioBloqueo : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event == null || event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        if (event == null) return
         val paquete = event.packageName?.toString() ?: return
-        if (esVentanaDelSistema(paquete)) return
-
-        paqueteActual = paquete
-        sinCaerse { revisar(paquete) }
+        when (event.eventType) {
+            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
+                if (esVentanaDelSistema(paquete)) return
+                if (paquete != paqueteActual) claseActual = null
+                paqueteActual = paquete
+                // Los menus y dialogos tambien llegan aqui con clases como
+                // "android.widget.FrameLayout": esos no son una pantalla nueva.
+                val clase = event.className?.toString()
+                if (clase != null && !clase.startsWith("android.")) claseActual = clase
+                sinCaerse { revisar(paquete) }
+            }
+            // Algo cambio dentro de la pantalla (otra pestaña, se abrio un reel...).
+            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
+                if (paquete == paqueteActual && ReglasSubventanas.vigila(paquete)) programarEscaneo()
+            }
+        }
     }
 
     /**
@@ -109,36 +164,141 @@ class ServicioBloqueo : AccessibilityService() {
 
     private fun revisar(paquete: String) {
         if (AppsInstaladas.protegida(paquete)) return
-        if (!AppsBloqueadas.contiene(this, paquete)) return
-
-        when {
-            SesionActual.bloqueoActivo -> bloquearPorSesion(paquete)
-            Desbloqueo.activo(this) -> programarRevision()
-            else -> bloquearPorSaldo(paquete)
+        if (AppsBloqueadas.contiene(this, paquete)) {
+            aplicarReglas(paquete, seccion = null)
+        } else if (ReglasSubventanas.vigila(paquete)) {
+            // La app no esta bloqueada entera: hay que mirar en que seccion estas.
+            programarEscaneo()
         }
     }
 
-    private fun bloquearPorSesion(paquete: String) {
-        avisar(getString(R.string.bloqueo_aviso, nombreDe(paquete)))
-        salirYMostrarFocusZone()
+    /** Las mismas reglas para apps enteras y para secciones ([seccion] != null). */
+    private fun aplicarReglas(paquete: String, seccion: Subventana?) {
+        when {
+            SesionActual.bloqueoActivo -> bloquearPorSesion(paquete, seccion)
+            Desbloqueo.activo(this) -> programarRevision()
+            else -> bloquearPorSaldo(paquete, seccion)
+        }
     }
 
-    private fun bloquearPorSaldo(paquete: String) {
+    private fun bloquearPorSesion(paquete: String, seccion: Subventana?) {
+        val texto = if (seccion == null) {
+            getString(R.string.bloqueo_aviso, nombreDe(paquete))
+        } else {
+            getString(R.string.bloqueo_aviso_seccion, getString(SeccionesBloqueadas.nombre(seccion)))
+        }
+        avisar(texto)
+        salirYMostrarFocusZone(seccion)
+    }
+
+    private fun bloquearPorSaldo(paquete: String, seccion: Subventana?) {
         // FocusZone lee esta solicitud y muestra "¿Desbloquear X min?".
-        SolicitudDesbloqueo.pedir(paquete)
-        salirYMostrarFocusZone()
+        SolicitudDesbloqueo.pedir(paquete, seccion)
+        salirYMostrarFocusZone(seccion)
     }
 
     /**
-     * 1. "Pulsar inicio": lo que de verdad te saca de la app (siempre funciona).
-     * 2. Un momento despues, abrir FocusZone encima. En Xiaomi esto requiere el
+     * 1. Si es una seccion: "atras" dos veces, para que al volver a abrir la app
+     *    aparezca en Chats o en el Inicio y no otra vez en Reels o Novedades.
+     * 2. "Pulsar inicio": lo que de verdad te saca de la app (siempre funciona).
+     * 3. Un momento despues, abrir FocusZone encima. En Xiaomi esto requiere el
      *    permiso "Mostrar ventanas emergentes en segundo plano"; si falta, al
      *    menos quedas en el escritorio, fuera de la app bloqueada.
      */
-    private fun salirYMostrarFocusZone() {
-        performGlobalAction(GLOBAL_ACTION_HOME)
+    private fun salirYMostrarFocusZone(seccion: Subventana? = null) {
+        manejador.removeCallbacks(irAInicio)
         manejador.removeCallbacks(abrirFocusZone)
-        manejador.postDelayed(abrirFocusZone, RETRASO_ABRIR_FOCUSZONE_MS)
+        if (seccion == null) {
+            irAInicio.run()
+            return
+        }
+        ultimoBloqueoSeccionMs = SystemClock.elapsedRealtime()
+        performGlobalAction(GLOBAL_ACTION_BACK)
+        manejador.postDelayed({ sinCaerse { performGlobalAction(GLOBAL_ACTION_BACK) } }, RETRASO_ATRAS_MS)
+        manejador.postDelayed(irAInicio, RETRASO_ATRAS_MS * 2)
+    }
+
+    // ---------------------------------------------------------------------
+    // Secciones de WhatsApp e Instagram
+    // ---------------------------------------------------------------------
+
+    private fun programarEscaneo() {
+        if (escaneoPendiente) return
+        escaneoPendiente = true
+        manejador.postDelayed(escaneo, RETRASO_ESCANEO_MS)
+    }
+
+    private fun escanearSecciones() {
+        val paquete = paqueteActual ?: return
+        if (!ReglasSubventanas.vigila(paquete)) return
+        // Si la app entera esta bloqueada, ya se encarga revisar().
+        if (AppsBloqueadas.contiene(this, paquete)) return
+        val activas = SeccionesBloqueadas.actuales(this).intersect(ReglasSubventanas.de(paquete))
+        if (activas.isEmpty()) return
+        if (SystemClock.elapsedRealtime() - ultimoBloqueoSeccionMs < PAUSA_TRAS_BLOQUEO_MS) return
+
+        val raiz = rootInActiveWindow ?: return
+        if (raiz.packageName?.toString() != paquete) {
+            reciclar(raiz)
+            return
+        }
+        val vista = leerVista(raiz, paquete)
+        val seccion = ReglasSubventanas.detectar(vista, activas)
+        Diagnostico.anotar(describir(vista, seccion))
+        if (seccion != null) aplicarReglas(paquete, seccion)
+    }
+
+    /**
+     * Recorre los elementos de la pantalla y anota solo su nombre interno y,
+     * si estan seleccionados (la pestaña activa), su etiqueta corta.
+     */
+    private fun leerVista(raiz: AccessibilityNodeInfo, paquete: String): VistaApp {
+        val ids = HashSet<String>()
+        val seleccionados = HashSet<String>()
+        val pendientes = ArrayDeque<AccessibilityNodeInfo>()
+        pendientes.addLast(raiz)
+        var revisados = 0
+        while (pendientes.isNotEmpty()) {
+            val nodo = pendientes.removeFirst()
+            if (revisados < MAX_NODOS) {
+                revisados++
+                if (nodo.isVisibleToUser) {
+                    val id = nodo.viewIdResourceName?.let(ReglasSubventanas::idCorto)
+                    if (id != null) ids += id
+                    if (nodo.isSelected) {
+                        if (id != null) seleccionados += id
+                        etiqueta(nodo)?.let { seleccionados += it }
+                    }
+                }
+                for (i in 0 until nodo.childCount) {
+                    nodo.getChild(i)?.let { pendientes.addLast(it) }
+                }
+            }
+            reciclar(nodo)
+        }
+        return VistaApp(paquete, claseActual, ids, seleccionados)
+    }
+
+    private fun etiqueta(nodo: AccessibilityNodeInfo): String? =
+        (nodo.contentDescription ?: nodo.text)?.toString()?.trim()?.take(40)?.takeIf { it.isNotEmpty() }
+
+    /** Antes de Android 13 hay que devolver cada elemento leido, o se acumulan en memoria. */
+    @Suppress("DEPRECATION")
+    private fun reciclar(nodo: AccessibilityNodeInfo) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) nodo.recycle()
+    }
+
+    /** Una linea para el diagnostico: lo minimo para poder ajustar ReglasSubventanas. */
+    private fun describir(vista: VistaApp, seccion: Subventana?): String {
+        val app = if (vista.paquete == ReglasSubventanas.PAQUETE_INSTAGRAM) "Instagram" else "WhatsApp"
+        val pantalla = vista.clase?.substringAfterLast('.') ?: "?"
+        val pistas = vista.ids
+            .filter { id -> PISTAS_DIAGNOSTICO.any { it in id.lowercase() } }
+            .sorted()
+            .take(8)
+        val resultado = seccion?.let { "BLOQUEA ${it.name}" } ?: "libre"
+        return "$app · $pantalla · sel: ${vista.seleccionados.sorted().joinToString()} · " +
+            "ids: ${pistas.joinToString()} · $resultado"
     }
 
     private fun programarRevision() {
@@ -187,8 +347,7 @@ class ServicioBloqueo : AccessibilityService() {
 
     override fun onDestroy() {
         _funcionando.value = false
-        manejador.removeCallbacks(revisarAlExpirar)
-        manejador.removeCallbacks(abrirFocusZone)
+        manejador.removeCallbacksAndMessages(null)
         super.onDestroy()
     }
 }

@@ -36,8 +36,8 @@ object AppsBloqueadas {
         f.value = nuevo
         preferencias(context).edit().putStringSet(CLAVE_APPS, nuevo).apply()
 
-        // Con apps marcadas, el guardian vigila que el bloqueo siga vivo.
-        if (nuevo.isEmpty()) ServicioGuardian.detener(context) else ServicioGuardian.iniciar(context)
+        // Con algo marcado, el guardian vigila que el bloqueo siga vivo.
+        ServicioGuardian.actualizar(context)
     }
 
     @Synchronized

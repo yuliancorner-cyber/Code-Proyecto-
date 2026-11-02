@@ -31,10 +31,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,9 +51,12 @@ import com.focuszone.app.R
 import com.focuszone.app.bloqueo.AppInstalada
 import com.focuszone.app.bloqueo.AppsBloqueadas
 import com.focuszone.app.bloqueo.AppsInstaladas
+import com.focuszone.app.bloqueo.Diagnostico
 import com.focuszone.app.bloqueo.EstadoPermisos
 import com.focuszone.app.bloqueo.PermisosBloqueo
+import com.focuszone.app.bloqueo.SeccionesBloqueadas
 import com.focuszone.app.bloqueo.ServicioBloqueo
+import com.focuszone.app.logica.Subventana
 
 /**
  * Estado de los permisos especiales, que se vuelve a leer cada vez que la
@@ -71,7 +76,7 @@ fun recordarEstadoPermisos(): EstadoPermisos {
     return estado.copy(accesibilidadFuncionando = estado.accesibilidad && funcionando)
 }
 
-/** Configuracion del bloqueo: permisos especiales + eleccion de apps distractoras. */
+/** Configuracion del bloqueo: permisos especiales + secciones + eleccion de apps distractoras. */
 @Composable
 fun PantallaBloqueo(onVolver: () -> Unit, onCambiarClave: () -> Unit) {
     // Boton "atras" del celular = volver a la pantalla de inicio de FocusZone.
@@ -81,6 +86,9 @@ fun PantallaBloqueo(onVolver: () -> Unit, onCambiarClave: () -> Unit) {
     val colores = MaterialTheme.colorScheme
     val permisos = recordarEstadoPermisos()
     val seleccionadas by remember { AppsBloqueadas.observar(context) }.collectAsStateWithLifecycle()
+    val secciones by remember { SeccionesBloqueadas.observar(context) }.collectAsStateWithLifecycle()
+    val diagnostico by Diagnostico.lineas.collectAsStateWithLifecycle()
+    var verDiagnostico by rememberSaveable { mutableStateOf(false) }
 
     // Lista de apps: se carga en segundo plano; mientras tanto vale null.
     val apps by produceState<List<AppInstalada>?>(initialValue = null) {
@@ -170,6 +178,44 @@ fun PantallaBloqueo(onVolver: () -> Unit, onCambiarClave: () -> Unit) {
                     textoBoton = stringResource(R.string.boton_cambiar_clave),
                     onActivar = onCambiarClave
                 )
+            }
+
+            // --- Secciones de WhatsApp e Instagram ---------------------------
+            item {
+                Column {
+                    Spacer(Modifier.height(8.dp))
+                    TituloSeccion(stringResource(R.string.secciones_titulo, secciones.size))
+                    Text(
+                        text = stringResource(R.string.secciones_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colores.onBackground.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
+                }
+            }
+            items(Subventana.entries, key = { "seccion_" + it.name }) { seccion ->
+                FilaSeccion(
+                    seccion = seccion,
+                    marcada = seccion in secciones,
+                    onAlternar = { SeccionesBloqueadas.alternar(context, seccion) }
+                )
+            }
+            if (secciones.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.secciones_reactivar),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colores.tertiary,
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
+                }
+                item {
+                    TarjetaDiagnostico(
+                        lineas = diagnostico,
+                        abierta = verDiagnostico,
+                        onAlternar = { verDiagnostico = !verDiagnostico }
+                    )
+                }
             }
 
             item {
@@ -263,6 +309,80 @@ private fun TarjetaPermiso(
                 Button(onClick = onActivar, shape = RoundedCornerShape(12.dp)) {
                     Text(textoBoton ?: stringResource(R.string.permiso_activar))
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FilaSeccion(seccion: Subventana, marcada: Boolean, onAlternar: () -> Unit) {
+    val colores = MaterialTheme.colorScheme
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onAlternar)
+            .padding(horizontal = 4.dp, vertical = 6.dp)
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                stringResource(SeccionesBloqueadas.nombre(seccion)),
+                style = MaterialTheme.typography.bodyLarge,
+                color = colores.onBackground
+            )
+            Text(
+                stringResource(SeccionesBloqueadas.descripcion(seccion)),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colores.onBackground.copy(alpha = 0.7f)
+            )
+        }
+        Checkbox(checked = marcada, onCheckedChange = { onAlternar() })
+    }
+}
+
+/** Lo que el servicio vio en WhatsApp/Instagram: para ajustar la deteccion si falla. */
+@Composable
+private fun TarjetaDiagnostico(lineas: List<String>, abierta: Boolean, onAlternar: () -> Unit) {
+    val colores = MaterialTheme.colorScheme
+    Surface(
+        color = colores.surface,
+        shape = RoundedCornerShape(16.dp),
+        tonalElevation = 1.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                stringResource(R.string.diagnostico_titulo),
+                style = MaterialTheme.typography.bodyLarge,
+                color = colores.onSurface
+            )
+            if (abierta) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.diagnostico_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colores.onSurface.copy(alpha = 0.7f)
+                )
+                Spacer(Modifier.height(8.dp))
+                if (lineas.isEmpty()) {
+                    Text(
+                        stringResource(R.string.diagnostico_vacio),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colores.onSurface.copy(alpha = 0.7f)
+                    )
+                } else {
+                    lineas.forEach { linea ->
+                        Text(
+                            linea,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colores.onSurface,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
+                }
+            }
+            TextButton(onClick = onAlternar) {
+                Text(stringResource(if (abierta) R.string.diagnostico_ocultar else R.string.diagnostico_ver))
             }
         }
     }
