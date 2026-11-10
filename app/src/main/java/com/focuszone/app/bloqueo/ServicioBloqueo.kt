@@ -1,8 +1,10 @@
 package com.focuszone.app.bloqueo
 
 import android.accessibilityservice.AccessibilityService
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -49,7 +51,10 @@ class ServicioBloqueo : AccessibilityService() {
         private const val TAG = "ServicioBloqueo"
 
         /** Palabras de los ids que interesan en el diagnostico (el resto es ruido). */
-        private val PISTAS_DIAGNOSTICO = listOf("reel", "clip", "status", "newsletter", "update", "tab", "story")
+        private val PISTAS_DIAGNOSTICO = listOf(
+            "reel", "clip", "status", "newsletter", "update", "tab", "story",
+            "direct", "inbox", "thread", "message"
+        )
 
         /**
          * Espera entre "pulsar inicio" y abrir FocusZone. Android ejecuta el
@@ -73,6 +78,24 @@ class ServicioBloqueo : AccessibilityService() {
         /** Tope de elementos a revisar por pantalla, para no gastar bateria. */
         private const val MAX_NODOS = 1_500
 
+        /**
+         * Enlaces que abren directamente la bandeja de mensajes de Instagram.
+         * Se prueban en orden: si Instagram cambia uno, queda el otro.
+         */
+        private val ENLACES_CHATS_INSTAGRAM = listOf(
+            "instagram://direct-inbox",
+            "https://www.instagram.com/direct/inbox/"
+        )
+
+        /**
+         * Si en este rato hubo que llevarte a los chats mas de [MAX_ENVIOS_A_CHATS]
+         * veces, algo falla (Instagram cambio y ya no reconocemos los chats, o el
+         * enlace no lleva a ellos): en vez de dar vueltas, FocusZone te muestra su
+         * pantalla de desbloqueo.
+         */
+        private const val VENTANA_ENVIOS_MS = 10_000L
+        private const val MAX_ENVIOS_A_CHATS = 3
+
         private val _funcionando = MutableStateFlow(false)
 
         /**
@@ -94,6 +117,8 @@ class ServicioBloqueo : AccessibilityService() {
 
     private var escaneoPendiente = false
     private var ultimoBloqueoSeccionMs = 0L
+    private var enviosAChats = 0
+    private var primerEnvioMs = 0L
 
     /** Al acabarse la ventana de desbloqueo: si sigues en una app bloqueada, te saca. */
     private val revisarAlExpirar = Runnable {
@@ -245,7 +270,55 @@ class ServicioBloqueo : AccessibilityService() {
         val vista = leerVista(raiz, paquete)
         val seccion = ReglasSubventanas.detectar(vista, activas)
         Diagnostico.anotar(describir(vista, seccion))
-        if (seccion != null) aplicarReglas(paquete, seccion)
+        when {
+            seccion == null -> Unit
+            // Con "solo chats", cualquier cosa de Instagram (tambien un reel o
+            // una historia) te devuelve a los chats en vez de sacarte de la app.
+            Subventana.INSTAGRAM_SOLO_CHATS in activas -> soloChats(paquete)
+            else -> aplicarReglas(paquete, seccion)
+        }
+    }
+
+    /**
+     * Instagram "solo chats": si tienes desbloqueo activo, todo libre; si no,
+     * te lleva a la bandeja de mensajes (tambien durante una sesion: los chats
+     * siguen permitidos).
+     */
+    private fun soloChats(paquete: String) {
+        if (Desbloqueo.activo(this)) {
+            programarRevision()
+            return
+        }
+        val ahora = SystemClock.elapsedRealtime()
+        if (ahora - primerEnvioMs > VENTANA_ENVIOS_MS) {
+            primerEnvioMs = ahora
+            enviosAChats = 0
+        }
+        enviosAChats++
+        ultimoBloqueoSeccionMs = ahora
+        if (enviosAChats > MAX_ENVIOS_A_CHATS || !abrirChatsDeInstagram(paquete)) {
+            // Plan B: lo mismo que las demas secciones (te saca y FocusZone ofrece desbloquear).
+            aplicarReglas(paquete, Subventana.INSTAGRAM_SOLO_CHATS)
+            return
+        }
+        avisar(getString(R.string.solo_chats_aviso))
+    }
+
+    /** Abre la bandeja de mensajes de Instagram. false si ningun enlace funciono. */
+    private fun abrirChatsDeInstagram(paquete: String): Boolean {
+        for (enlace in ENLACES_CHATS_INSTAGRAM) {
+            try {
+                startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse(enlace))
+                        .setPackage(paquete)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+                return true
+            } catch (e: ActivityNotFoundException) {
+                Log.w(TAG, "Instagram no abre $enlace", e)
+            }
+        }
+        return false
     }
 
     /**

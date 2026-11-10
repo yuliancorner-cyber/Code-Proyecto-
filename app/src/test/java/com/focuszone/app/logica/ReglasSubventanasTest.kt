@@ -8,7 +8,8 @@ import org.junit.Test
 
 class ReglasSubventanasTest {
 
-    private val todas = Subventana.entries.toSet()
+    // Las secciones "normales"; "solo chats" se prueba aparte (bloquea casi todo Instagram).
+    private val todas = Subventana.entries.toSet() - Subventana.INSTAGRAM_SOLO_CHATS
 
     private fun vista(
         paquete: String,
@@ -98,5 +99,57 @@ class ReglasSubventanasTest {
     fun idCortoQuitaElPaquete() {
         assertEquals("clips_tab", ReglasSubventanas.idCorto("com.instagram.android:id/clips_tab"))
         assertEquals("sin_prefijo", ReglasSubventanas.idCorto("sin_prefijo"))
+    }
+
+    // --- Instagram: solo chats ---------------------------------------------
+
+    private val soloChats = setOf(Subventana.INSTAGRAM_SOLO_CHATS)
+
+    @Test
+    fun soloChatsBloqueaElInicio() {
+        val v = vista(
+            "com.instagram.android",
+            ids = setOf("reels_tray_container", "action_bar_inbox_button", "feed_tab"),
+            seleccionados = setOf("feed_tab", "Inicio")
+        )
+        assertEquals(Subventana.INSTAGRAM_SOLO_CHATS, ReglasSubventanas.detectar(v, soloChats))
+    }
+
+    @Test
+    fun soloChatsPermiteLaBandeja() {
+        val v = vista("com.instagram.android", ids = setOf("inbox_refreshable_thread_list_recyclerview", "row_inbox_container"))
+        assertNull(ReglasSubventanas.detectar(v, soloChats))
+    }
+
+    @Test
+    fun soloChatsPermiteUnChatAbierto() {
+        val v = vista("com.instagram.android", ids = setOf("row_thread_composer_edittext", "thread_title"))
+        assertNull(ReglasSubventanas.detectar(v, soloChats))
+    }
+
+    @Test
+    fun soloChatsPermiteLaPestanaMensajes() {
+        val v = vista("com.instagram.android", seleccionados = setOf("direct_tab", "Mensajes"))
+        assertNull(ReglasSubventanas.detectar(v, soloChats))
+    }
+
+    @Test
+    fun soloChatsBloqueaUnReelAbiertoDesdeUnChat() {
+        val v = vista("com.instagram.android", ids = setOf("clips_viewer_view_pager", "thread_title"))
+        assertEquals(Subventana.INSTAGRAM_SOLO_CHATS, ReglasSubventanas.detectar(v, soloChats))
+    }
+
+    @Test
+    fun soloChatsBloqueaPantallaDesconocida() {
+        // Pantalla de carga o algo que no reconocemos: fuera de los chats.
+        val v = vista("com.instagram.android")
+        assertEquals(Subventana.INSTAGRAM_SOLO_CHATS, ReglasSubventanas.detectar(v, soloChats))
+    }
+
+    @Test
+    fun soloChatsNoAfectaAWhatsApp() {
+        val v = vista("com.whatsapp", seleccionados = setOf("Chats"))
+        assertNull(ReglasSubventanas.detectar(v, soloChats))
+        assertFalse(ReglasSubventanas.enChatsDeInstagram(v))
     }
 }

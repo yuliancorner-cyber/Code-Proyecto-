@@ -13,7 +13,13 @@ enum class Subventana {
     INSTAGRAM_HISTORIAS,
 
     /** Reels de Instagram: la pestaña Reels y el visor de reels. */
-    INSTAGRAM_REELS
+    INSTAGRAM_REELS,
+
+    /**
+     * Instagram solo para chatear: todo lo que no sean los mensajes directos
+     * (inicio, Reels, Historias, buscar, perfiles...) te devuelve a los chats.
+     */
+    INSTAGRAM_SOLO_CHATS
 }
 
 /**
@@ -64,13 +70,24 @@ object ReglasSubventanas {
     private val IDS_REELS = listOf("clips_viewer")
     private val SELECCION_REELS = listOf("clips_tab", "reels")
 
+    // Mensajes directos: Instagram los llama "direct". Ojo: el boton de
+    // mensajes de la barra de arriba del inicio ("action_bar_inbox_button")
+    // NO cuenta como estar en los chats; por eso las pistas son concretas.
+    private val IDS_CHATS = listOf(
+        "direct_inbox", "inbox_refreshable", "row_inbox", "direct_thread",
+        "thread_composer", "thread_title", "message_list"
+    )
+    private val SELECCION_CHATS = listOf("direct_tab", "mensajes", "messages")
+    private val CLASES_CHATS = listOf(".direct.")
+
     /** true si vale la pena mirar dentro de esta app (las demas se ignoran). */
     fun vigila(paquete: String): Boolean = paquete in PAQUETES_WHATSAPP || paquete == PAQUETE_INSTAGRAM
 
     /** Las secciones que pertenecen a [paquete]. */
     fun de(paquete: String): Set<Subventana> = when {
         paquete in PAQUETES_WHATSAPP -> setOf(Subventana.WHATSAPP_NOVEDADES)
-        paquete == PAQUETE_INSTAGRAM -> setOf(Subventana.INSTAGRAM_HISTORIAS, Subventana.INSTAGRAM_REELS)
+        paquete == PAQUETE_INSTAGRAM ->
+            setOf(Subventana.INSTAGRAM_HISTORIAS, Subventana.INSTAGRAM_REELS, Subventana.INSTAGRAM_SOLO_CHATS)
         else -> emptySet()
     }
 
@@ -81,6 +98,21 @@ object ReglasSubventanas {
     fun detectar(vista: VistaApp, activas: Set<Subventana>): Subventana? {
         val candidatas = de(vista.paquete).filter { it in activas }
         return candidatas.firstOrNull { coincide(it, vista) }
+    }
+
+    /**
+     * true si estas en los mensajes directos de Instagram (la bandeja o un chat).
+     * Un reel o una historia abiertos desde un chat NO cuentan como chat.
+     */
+    fun enChatsDeInstagram(vista: VistaApp): Boolean {
+        if (vista.paquete != PAQUETE_INSTAGRAM) return false
+        if (coincide(Subventana.INSTAGRAM_REELS, vista) || coincide(Subventana.INSTAGRAM_HISTORIAS, vista)) return false
+        val clase = vista.clase?.lowercase().orEmpty()
+        val ids = vista.ids.map { it.lowercase() }
+        val seleccionados = vista.seleccionados.map { it.trim().lowercase() }
+        return CLASES_CHATS.any { it in clase } ||
+            ids.any { id -> IDS_CHATS.any { it in id } } ||
+            seleccionados.any { sel -> SELECCION_CHATS.any { sel.startsWith(it) } }
     }
 
     private fun coincide(seccion: Subventana, vista: VistaApp): Boolean {
@@ -100,6 +132,8 @@ object ReglasSubventanas {
             Subventana.INSTAGRAM_REELS ->
                 ids.any { id -> IDS_REELS.any { it in id } } ||
                     seleccionados.any { it in SELECCION_REELS }
+
+            Subventana.INSTAGRAM_SOLO_CHATS -> !enChatsDeInstagram(vista)
         }
     }
 

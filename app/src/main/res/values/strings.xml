@@ -158,6 +158,11 @@
     <string name="seccion_instagram_historias_desc">Ver historias (la fila de arriba sigue visible)</string>
     <string name="seccion_instagram_reels">Reels de Instagram</string>
     <string name="seccion_instagram_reels_desc">La pestaña Reels y los reels que abras desde el inicio o un chat</string>
+    <string name="seccion_instagram_solo_chats">Instagram: solo chats</string>
+    <string name="seccion_instagram_solo_chats_desc">Solo puedes usar los mensajes directos. Inicio, Reels, Historias, buscar y perfiles te devuelven a tus chats. Para usarlo completo, toca «Desbloquear» en el inicio de FocusZone.</string>
+    <string name="solo_chats_aviso">Instagram: solo chats</string>
+    <string name="boton_desbloquear">Desbloquear</string>
+    <string name="desbloqueo_titulo_manual">Desbloquear tus apps</string>
     <string name="secciones_reactivar">Tras activar una sección por primera vez, desactiva y vuelve a activar FocusZone en Accesibilidad, para que pueda ver las pestañas.</string>
     <string name="diagnostico_titulo">Diagnóstico de secciones</string>
     <string name="diagnostico_desc">Lo último que FocusZone vio en WhatsApp e Instagram (lo más reciente arriba). Si una sección no se bloquea, haz una captura de esto y compártela para ajustar la detección.</string>

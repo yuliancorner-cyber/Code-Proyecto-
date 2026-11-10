@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.focuszone.app.R
 import com.focuszone.app.bloqueo.AppsBloqueadas
 import com.focuszone.app.bloqueo.SeccionesBloqueadas
+import com.focuszone.app.bloqueo.SolicitudDesbloqueo
 import com.focuszone.app.bloqueo.Desbloqueo
 import com.focuszone.app.logica.EstadoSesion
 import com.focuszone.app.logica.Recompensa
@@ -166,6 +167,12 @@ fun PantallaInicio(
                 saldoHoy = saldoHoy,
                 segundosDesbloqueo = recordarSegundosDesbloqueo(),
                 onBloquearYa = { Desbloqueo.cerrar(context) },
+                // Desbloquear sin intentar abrir una app (p. ej. Instagram con "solo chats").
+                onDesbloquear = if (esperando == null && bloqueoListo && saldoHoy > 0) {
+                    { SolicitudDesbloqueo.pedir(context.packageName) }
+                } else {
+                    null
+                },
                 bloqueoListo = bloqueoListo,
                 textoBloqueo = textoBloqueo,
                 // Solo se puede configurar / consultar sin sesion en marcha.
@@ -206,6 +213,7 @@ private fun PanelSuperior(
     saldoHoy: Int,
     segundosDesbloqueo: Long,
     onBloquearYa: () -> Unit,
+    onDesbloquear: (() -> Unit)?,
     bloqueoListo: Boolean,
     textoBloqueo: String,
     onAbrirBloqueo: (() -> Unit)?,
@@ -236,6 +244,12 @@ private fun PanelSuperior(
                         color = AcentoPanel,
                         style = MaterialTheme.typography.labelLarge
                     )
+                    if (onDesbloquear != null && segundosDesbloqueo == 0L) {
+                        Spacer(Modifier.width(4.dp))
+                        TextButton(onClick = onDesbloquear) {
+                            Text(stringResource(R.string.boton_desbloquear), color = TextoPanel)
+                        }
+                    }
                 }
                 // Si gastaste saldo y las apps estan libres: cuenta atras + "Bloquear ya".
                 if (segundosDesbloqueo > 0) {

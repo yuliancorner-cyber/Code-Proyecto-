@@ -30,6 +30,7 @@ object SeccionesBloqueadas {
         Subventana.WHATSAPP_NOVEDADES -> R.string.seccion_whatsapp_novedades
         Subventana.INSTAGRAM_HISTORIAS -> R.string.seccion_instagram_historias
         Subventana.INSTAGRAM_REELS -> R.string.seccion_instagram_reels
+        Subventana.INSTAGRAM_SOLO_CHATS -> R.string.seccion_instagram_solo_chats
     }
 
     /** Que incluye, para la lista de la configuracion. */
@@ -38,6 +39,7 @@ object SeccionesBloqueadas {
         Subventana.WHATSAPP_NOVEDADES -> R.string.seccion_whatsapp_novedades_desc
         Subventana.INSTAGRAM_HISTORIAS -> R.string.seccion_instagram_historias_desc
         Subventana.INSTAGRAM_REELS -> R.string.seccion_instagram_reels_desc
+        Subventana.INSTAGRAM_SOLO_CHATS -> R.string.seccion_instagram_solo_chats_desc
     }
 
     /** Marca la seccion si no lo estaba, o la desmarca si ya lo estaba. */

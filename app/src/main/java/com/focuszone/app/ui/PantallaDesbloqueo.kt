@@ -62,6 +62,8 @@ fun PantallaDesbloqueo(paquete: String, saldoHoy: Int, seccion: Subventana? = nu
     val colores = MaterialTheme.colorScheme
 
     val app = remember(paquete) { leerApp(context, paquete) }
+    // Abierta con el boton "Desbloquear" del inicio: no hay app que abrir despues.
+    val manual = paquete == context.packageName
     val opciones = ReglasSaldo.opciones(saldoHoy)
     var procesando by remember { mutableStateOf(false) }
 
@@ -86,7 +88,9 @@ fun PantallaDesbloqueo(paquete: String, saldoHoy: Int, seccion: Subventana? = nu
 
         Spacer(Modifier.height(24.dp))
         Text(
-            text = if (seccion == null) {
+            text = if (manual) {
+                stringResource(R.string.desbloqueo_titulo_manual)
+            } else if (seccion == null) {
                 stringResource(R.string.desbloqueo_titulo, app.nombre)
             } else {
                 stringResource(R.string.desbloqueo_titulo_seccion, stringResource(SeccionesBloqueadas.nombre(seccion)))
@@ -138,7 +142,7 @@ fun PantallaDesbloqueo(paquete: String, saldoHoy: Int, seccion: Subventana? = nu
                             alcance.launch {
                                 if (GestorSaldo.desbloquear(context, minutos)) {
                                     SolicitudDesbloqueo.limpiar()
-                                    abrirApp(context, paquete)
+                                    if (!manual) abrirApp(context, paquete)
                                 }
                                 procesando = false
                             }
