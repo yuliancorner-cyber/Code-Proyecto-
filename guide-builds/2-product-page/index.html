@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Halden R1 Configurator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Instrument+Sans:wght@400..700&display=swap">
+<style>
+/* Layout: a studio stage (the turntable) beside a spec-sheet panel; on phones the stage sits on top and the panel scrolls under it. */
+:root {
+  --bg: #F4F5F7;
+  --surface: #FFFFFF;
+  --fg: #14171C;
+  --muted: #5B6470;
+  --line: #D9DDE3;
+  --accent: #2447E6;
+  --stage-hi: #FCFCFD;
+  --stage-lo: #D3D8E0;
+  --tt: #ECEEF1;
+  --tt-edge: #C6CBD3;
+  --tt-mark: #A3ABB7;
+  --shadow: 0.26;
+  --chip-ring: rgba(20, 23, 28, 0.22);
+  --font-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111418; --surface: #191D23; --fg: #ECEFF3; --muted: #9AA4B1; --line: #2C323B;
+    --accent: #93A8FF; --stage-hi: #3A414C; --stage-lo: #15181D;
+    --tt: #2C3139; --tt-edge: #1E2228; --tt-mark: #5A6472; --shadow: 0.5;
+    --chip-ring: rgba(236, 239, 243, 0.3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111418; --surface: #191D23; --fg: #ECEFF3; --muted: #9AA4B1; --line: #2C323B;
+  --accent: #93A8FF; --stage-hi: #3A414C; --stage-lo: #15181D;
+  --tt: #2C3139; --tt-edge: #1E2228; --tt-mark: #5A6472; --shadow: 0.5;
+  --chip-ring: rgba(236, 239, 243, 0.3);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 15px/1.45 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+[hidden] { display: none !important; }
+button, input { font: inherit; color: inherit; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 410px);
+}
+
+/* ---------- Stage ---------- */
+.stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: radial-gradient(120% 90% at 50% 30%, var(--stage-hi) 0%, var(--stage-lo) 100%);
+  overflow: hidden;
+}
+#view {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+#view:active { cursor: grabbing; }
+.stage-row {
+  position: absolute; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  pointer-events: none;
+}
+.stage-row > * { pointer-events: auto; }
+.stage-top { top: 0; padding-block: 14px; }
+.stage-bottom { bottom: 0; padding-block: 12px; }
+.wordmark {
+  font: 800 17px/1 var(--font-display);
+  font-stretch: 125%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.bag {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 600; font-size: 13px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+.bag b {
+  min-width: 20px; height: 20px; padding: 0 6px;
+  display: inline-grid; place-items: center;
+  border-radius: 999px;
+  background: var(--fg); color: var(--bg);
+  font-size: 12px; font-variant-numeric: tabular-nums;
+}
+.bag.bump b { animation: bump 0.45s ease-out; }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.45); } 100% { transform: scale(1); } }
+.hint { font-size: 12.5px; color: var(--muted); }
+.ghost {
+  font-size: 12.5px; font-weight: 600;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.ghost:hover { border-color: var(--fg); }
+.stage-msg {
+  position: absolute; inset: 0;
+  margin: 0;
+  display: grid; place-items: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* ---------- Panel ---------- */
+.panel {
+  min-width: 0; min-height: 0;
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+}
+.panel-scroll {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 26px;
+  padding-block: 26px 22px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.eyebrow {
+  margin: 0;
+  font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted);
+}
+h1 {
+  margin: 6px 0 0;
+  font: 800 38px/1 var(--font-display);
+  font-stretch: 125%;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.specs {
+  margin: 14px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.specs div { padding: 10px 0; }
+.specs div + div { padding-left: 12px; border-left: 1px solid var(--line); }
+.specs dt { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.specs dd { margin: 2px 0 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+fieldset { margin: 0; padding: 0; border: 0; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+legend { padding: 0; float: left; width: 100%; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+legend + * { clear: both; }
+.legend-name { font-weight: 700; }
+.legend-value { font-size: 13.5px; color: var(--muted); text-align: right; }
+.legend-value .delta { color: var(--accent); font-weight: 600; margin-left: 6px; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatch { position: relative; display: block; cursor: pointer; }
+.swatch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.chip {
+  display: block; width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--chip);
+  box-shadow: inset 0 0 0 1px var(--chip-ring);
+  outline: 2px solid transparent; outline-offset: 3px;
+  transition: outline-color 0.15s, transform 0.15s;
+}
+.swatch:hover .chip { transform: scale(1.06); }
+.swatch input:checked + .chip { outline-color: var(--fg); }
+.swatch input:focus-visible + .chip { outline-color: var(--accent); }
+
+.materials { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.material { position: relative; display: block; cursor: pointer; }
+.material input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.material .card {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  transition: border-color 0.15s;
+}
+.material .card strong { font-weight: 700; }
+.material .card span { font-size: 13px; color: var(--muted); }
+.material:hover .card { border-color: var(--muted); }
+.material input:checked + .card { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.material input:focus-visible + .card { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+.initials-row { display: flex; align-items: center; gap: 14px; }
+#initials {
+  width: 104px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  font: 700 20px/1.2 var(--font-display);
+  font-stretch: 125%;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: center;
+}
+#initials::placeholder { color: var(--muted); opacity: 0.55; }
+#initials:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.initials-row p { margin: 0; font-size: 13px; color: var(--muted); min-width: 0; }
+
+.build { margin: 0; padding: 14px 0 0; list-style: none; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.build li { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; }
+.build li span:first-child { color: var(--muted); min-width: 0; }
+.build li span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+
+.buybar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding-block: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.price-label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+#price {
+  display: block;
+  font: 800 30px/1.05 var(--font-display);
+  font-stretch: 125%;
+  font-variant-numeric: tabular-nums;
+}
+#add {
+  flex: 0 1 210px;
+  padding: 15px 20px;
+  border: 0; border-radius: 999px;
+  background: var(--fg); color: var(--bg);
+  font-weight: 700; font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+#add:hover { transform: translateY(-1px); }
+#add:active { transform: translateY(1px); }
+#add:focus-visible, .ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+@media (min-width: 861px) {
+  .panel-scroll, .buybar { padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); }
+  .stage-row { padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+  .stage-top { padding-block: 22px; }
+  .stage-bottom { padding-block: 20px; }
+}
+@media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: 43% minmax(0, 1fr); }
+  .panel { border-left: 0; border-top: 1px solid var(--line); }
+  .panel-scroll { gap: 22px; padding-block: 18px; }
+  h1 { font-size: 30px; }
+  .hint { display: none; }
+  .stage-bottom { justify-content: flex-end; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip, #add, .material .card { transition: none; }
+  .bag.bump b { animation: none; }
+}
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div class="app">
+  <section class="stage" aria-label="3D view of the shoe">
+    <canvas id="view" aria-label="Running shoe on a turntable. Drag to orbit the camera."></canvas>
+    <div class="stage-row stage-top">
+      <span class="wordmark">Halden</span>
+      <span class="bag" id="bag" aria-live="polite">Bag <b id="bag-count">0</b></span>
+    </div>
+    <div class="stage-row stage-bottom">
+      <span class="hint">Drag to orbit. Scroll or pinch to zoom.</span>
+      <button class="ghost" id="spin-toggle" type="button" aria-pressed="false">Pause turntable</button>
+    </div>
+    <p class="stage-msg" id="stage-msg" hidden></p>
+  </section>
+
+  <aside class="panel" aria-label="Configure your shoe">
+    <div class="panel-scroll">
+      <header>
+        <p class="eyebrow">Road running · Daily trainer</p>
+        <h1>Halden R1</h1>
+        <dl class="specs">
+          <div><dt>Weight</dt><dd>238 g</dd></div>
+          <div><dt>Drop</dt><dd>8 mm</dd></div>
+          <div><dt>Stack</dt><dd>34 / 26 mm</dd></div>
+        </dl>
+      </header>
+
+      <fieldset>
+        <legend><span class="legend-name">Upper</span><span class="legend-value" id="val-upper"></span></legend>
+        <div class="swatches" id="opt-upper"></div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="legend-name">Sole</span><span class="legend-value" id="val-sole"></span></legend>
+        <div class="swatches" id="opt-sole"></div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="legend-name">Laces</span><span class="legend-value" id="val-laces"></span></legend>
+        <div class="swatches" id="opt-laces"></div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="legend-name">Material</span><span class="legend-value" id="val-material"></span></legend>
+        <div class="materials" id="opt-material"></div>
+      </fieldset>
+      <fieldset>
+        <legend><span class="legend-name"><label for="initials">Heel initials</label></span><span class="legend-value" id="val-initials"></span></legend>
+        <div class="initials-row">
+          <input id="initials" name="initials" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="3" placeholder="ABC">
+          <p>Up to 3 letters or numbers, stitched on the heel. Adds $12.</p>
+        </div>
+      </fieldset>
+
+      <ul class="build" id="build" aria-label="Price breakdown"></ul>
+    </div>
+
+    <div class="buybar">
+      <div>
+        <span class="price-label">Total</span>
+        <output id="price" for="initials" aria-live="polite">$140</output>
+      </div>
+      <button id="add" type="button">Add to bag</button>
+    </div>
+  </aside>
+</div>
+
+<script type="module">
+/* ============================================================
+   Catalogue and price (plain data + pure functions)
+   ============================================================ */
+const BASE_PRICE = 140;
+const INITIALS_PRICE = 12;
+const OPTIONS = {
+  upper: [
+    { id: 'cobalt',   name: 'Cobalt',     hex: '#2B4FE0', price: 0 },
+    { id: 'chalk',    name: 'Chalk',      hex: '#E9E6DF', price: 0 },
+    { id: 'graphite', name: 'Graphite',   hex: '#30343B', price: 0 },
+    { id: 'forest',   name: 'Forest',     hex: '#1F5A45', price: 0 },
+    { id: 'signal',   name: 'Signal red', hex: '#E0392D', price: 5 },
+    { id: 'volt',     name: 'Volt',       hex: '#C6EE3A', price: 5 },
+  ],
+  sole: [
+    { id: 'white', name: 'White',    hex: '#F3F3F0', price: 0 },
+    { id: 'black', name: 'Black',    hex: '#1D1E21', price: 0 },
+    { id: 'ice',   name: 'Ice blue', hex: '#BCD6EC', price: 5 },
+    { id: 'volt',  name: 'Volt',     hex: '#C6EE3A', price: 5 },
+    { id: 'gum',   name: 'Gum',      hex: '#B88750', price: 8 },
+  ],
+  laces: [
+    { id: 'white',  name: 'White',      hex: '#F5F5F2', price: 0 },
+    { id: 'black',  name: 'Black',      hex: '#1D1E21', price: 0 },
+    { id: 'signal', name: 'Signal red', hex: '#E0392D', price: 0 },
+    { id: 'volt',   name: 'Volt',       hex: '#C6EE3A', price: 0 },
+    { id: 'silver', name: 'Reflective', hex: '#C3C9D2', price: 4 },
+  ],
+  material: [
+    { id: 'mesh',    name: 'Engineered mesh', note: 'Light and breathable', price: 0 },
+    { id: 'leather', name: 'Leather',         note: 'Smooth full grain',    price: 35 },
+  ],
+};
+const GROUPS = ['upper', 'sole', 'laces', 'material'];
+const LABELS = { upper: 'upper', sole: 'sole', laces: 'laces', material: '' };
+
+const state = { upper: 'cobalt', sole: 'white', laces: 'white', material: 'mesh', initials: '' };
+
+const find = (group, id) => OPTIONS[group].find((o) => o.id === id) || OPTIONS[group][0];
+const cleanInitials = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3);
+
+function priceLines(s) {
+  const lines = [['Halden R1', BASE_PRICE]];
+  for (const g of GROUPS) {
+    const o = find(g, s[g]);
+    if (o.price) lines.push([`${o.name} ${LABELS[g]}`.trim(), o.price]);
+  }
+  if (s.initials) lines.push([`Heel initials ${s.initials}`, INITIALS_PRICE]);
+  return lines;
+}
+const totalPrice = (s) => priceLines(s).reduce((sum, l) => sum + l[1], 0);
+
+/* ============================================================
+   Panel UI
+   ============================================================ */
+const $ = (sel) => document.querySelector(sel);
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let view3d = null;          // set once the 3D scene is ready
+let shownPrice = BASE_PRICE;
+let priceAnim = 0;
+
+function renderOptions() {
+  for (const g of ['upper', 'sole', 'laces']) {
+    $(`#opt-${g}`).innerHTML = OPTIONS[g].map((o) => `
+      <label class="swatch" title="${o.name}${o.price ? ` (+$${o.price})` : ''}">
+        <input type="radio" name="${g}" id="${g}-${o.id}" value="${o.id}"${state[g] === o.id ? ' checked' : ''}>
+        <span class="chip" style="--chip:${o.hex}"></span>
+        <span class="sr">${o.name}${o.price ? `, adds $${o.price}` : ''}</span>
+      </label>`).join('');
+  }
+  $('#opt-material').innerHTML = OPTIONS.material.map((o) => `
+    <label class="material">
+      <input type="radio" name="material" id="material-${o.id}" value="${o.id}"${state.material === o.id ? ' checked' : ''}>
+      <span class="card"><strong>${o.name}</strong><span>${o.note} · ${o.price ? `+$${o.price}` : 'Included'}</span></span>
+    </label>`).join('');
+  $('#initials').value = state.initials;
+}
+
+function setPrice(target) {
+  cancelAnimationFrame(priceAnim);
+  const out = $('#price');
+  if (reduceMotion || target === shownPrice) { shownPrice = target; out.textContent = `$${target}`; return; }
+  const from = shownPrice, t0 = performance.now(), dur = 320;
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / dur);
+    shownPrice = Math.round(from + (target - from) * (1 - Math.pow(1 - k, 3)));
+    out.textContent = `$${shownPrice}`;
+    if (k < 1) priceAnim = requestAnimationFrame(step);
+  };
+  priceAnim = requestAnimationFrame(step);
+}
+
+function update() {
+  for (const g of GROUPS) {
+    const o = find(g, state[g]);
+    $(`#val-${g}`).innerHTML = `${o.name}${o.price ? `<span class="delta">+$${o.price}</span>` : ''}`;
+  }
+  $('#val-initials').innerHTML = state.initials ? `${state.initials}<span class="delta">+$${INITIALS_PRICE}</span>` : 'None';
+  $('#build').innerHTML = priceLines(state).map(([name, amount], i) =>
+    `<li><span>${name}</span><span>${i ? '+' : ''}$${amount}</span></li>`).join('');
+  setPrice(totalPrice(state));
+  if (view3d) view3d.apply(state);
+}
+
+document.addEventListener('change', (e) => {
+  const el = e.target;
+  if (el.matches('input[type="radio"]') && GROUPS.includes(el.name)) { state[el.name] = el.value; update(); }
+});
+$('#initials').addEventListener('input', (e) => {
+  const v = cleanInitials(e.target.value);
+  if (v !== e.target.value) e.target.value = v;
+  state.initials = v;
+  update();
+});
+
+let bagCount = 0, addTimer = 0;
+$('#add').addEventListener('click', () => {
+  bagCount += 1;
+  $('#bag-count').textContent = bagCount;
+  const bag = $('#bag');
+  bag.classList.remove('bump'); void bag.offsetWidth; bag.classList.add('bump');
+  const btn = $('#add');
+  btn.textContent = 'Added to bag';
+  clearTimeout(addTimer);
+  addTimer = setTimeout(() => { btn.textContent = 'Add to bag'; }, 1700);
+  if (view3d) view3d.celebrate();
+});
+
+let spinning = !reduceMotion;
+function syncSpinButton() {
+  const b = $('#spin-toggle');
+  b.textContent = spinning ? 'Pause turntable' : 'Spin turntable';
+  b.setAttribute('aria-pressed', String(!spinning));
+}
+$('#spin-toggle').addEventListener('click', () => { spinning = !spinning; syncSpinButton(); });
+
+function stageMessage(text) {
+  const m = $('#stage-msg');
+  m.textContent = text;
+  m.hidden = false;
+  $('#view').hidden = true;
+  $('#spin-toggle').hidden = true;
+}
+
+/* ============================================================
+   3D scene
+   ============================================================ */
+async function init3D() {
+  let THREE, OrbitControls, RoomEnvironment;
+  try {
+    THREE = await import('three');
+    ({ OrbitControls } = await import('three/addons/controls/OrbitControls.js'));
+    ({ RoomEnvironment } = await import('three/addons/environments/RoomEnvironment.js'));
+  } catch (err) {
+    console.error(err);
+    stageMessage('The 3D view could not load. Check your connection, then reload the page.');
+    return;
+  }
+
+  const canvas = $('#view');
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  } catch (err) {
+    console.error(err);
+    stageMessage('This browser could not start WebGL, so the 3D view is unavailable.');
+    return;
+  }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+  const TARGET = new THREE.Vector3(0, 0.78, 0);
+  camera.position.set(3.4, 2.5, 6.4);
+
+  const controls = new OrbitControls(camera, canvas);
+  controls.target.copy(TARGET);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.enablePan = false;
+  controls.minPolarAngle = 0.25;
+  controls.maxPolarAngle = Math.PI / 2 - 0.06;
+
+  /* ---- Studio lighting ---- */
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xb9c0cc, 0.55));
+  const key = new THREE.DirectionalLight(0xfff4e6, 2.6);
+  key.position.set(3.5, 7.5, 4.5);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.near = 1; key.shadow.camera.far = 22;
+  key.shadow.camera.left = -4.2; key.shadow.camera.right = 4.2;
+  key.shadow.camera.top = 4.2; key.shadow.camera.bottom = -4.2;
+  key.shadow.bias = -0.0004; key.shadow.normalBias = 0.03;
+  key.shadow.radius = 5;
+  scene.add(key);
+  const softKey = new THREE.DirectionalLight(0xffffff, 0.9);   // second shadow caster widens the penumbra
+  softKey.position.set(-2.5, 8, 2.5);
+  softKey.castShadow = true;
+  softKey.shadow.mapSize.set(1024, 1024);
+  softKey.shadow.camera.near = 1; softKey.shadow.camera.far = 22;
+  softKey.shadow.camera.left = -4.2; softKey.shadow.camera.right = 4.2;
+  softKey.shadow.camera.top = 4.2; softKey.shadow.camera.bottom = -4.2;
+  softKey.shadow.bias = -0.0004; softKey.shadow.normalBias = 0.03;
+  scene.add(softKey);
+  const rim = new THREE.DirectionalLight(0xcfe0ff, 1.5);
+  rim.position.set(-5, 3.5, -6);
+  scene.add(rim);
+
+  /* ---- Floor shadow catcher and turntable ---- */
+  const shadowMat = new THREE.ShadowMaterial({ opacity: 0.25 });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), shadowMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  const TT_R = 2.3, TT_H = 0.14;
+  const turn = new THREE.Group();          // everything that rotates
+  scene.add(turn);
+  const ttSideMat = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.1 });
+  const ttSide = new THREE.Mesh(new THREE.CylinderGeometry(TT_R, TT_R, TT_H, 120, 1, true), ttSideMat);
+  ttSide.position.y = TT_H / 2;
+  ttSide.castShadow = true; ttSide.receiveShadow = true;
+  turn.add(ttSide);
+  const ttCanvas = document.createElement('canvas');
+  ttCanvas.width = ttCanvas.height = 1024;
+  const ttTex = new THREE.CanvasTexture(ttCanvas);
+  ttTex.colorSpace = THREE.SRGBColorSpace;
+  ttTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const ttTop = new THREE.Mesh(new THREE.CircleGeometry(TT_R, 120), new THREE.MeshStandardMaterial({ map: ttTex, roughness: 0.62, metalness: 0.05 }));
+  ttTop.rotation.x = -Math.PI / 2;
+  ttTop.position.y = TT_H;
+  ttTop.receiveShadow = true;
+  turn.add(ttTop);
+
+  function drawTurntable(base, mark) {
+    const g = ttCanvas.getContext('2d'), S = ttCanvas.width, c = S / 2;
+    g.fillStyle = base; g.fillRect(0, 0, S, S);
+    g.strokeStyle = mark; g.lineCap = 'butt';
+    g.lineWidth = 2; g.beginPath(); g.arc(c, c, c * 0.955, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 1.5; g.beginPath(); g.arc(c, c, c * 0.80, 0, Math.PI * 2); g.stroke();
+    for (let deg = 0; deg < 360; deg += 5) {
+      const a = deg * Math.PI / 180, major = deg % 45 === 0, mid = deg % 15 === 0;
+      const r0 = c * (major ? 0.86 : mid ? 0.895 : 0.92), r1 = c * 0.955;
+      g.lineWidth = major ? 4 : 2;
+      g.beginPath(); g.moveTo(c + Math.cos(a) * r0, c + Math.sin(a) * r0); g.lineTo(c + Math.cos(a) * r1, c + Math.sin(a) * r1); g.stroke();
+    }
+    ttTex.needsUpdate = true;
+  }
+  function applyTheme() {
+    const cs = getComputedStyle(document.documentElement);
+    const v = (n, d) => cs.getPropertyValue(n).trim() || d;
+    ttSideMat.color.set(v('--tt-edge', '#C6CBD3'));
+    drawTurntable(v('--tt', '#ECEEF1'), v('--tt-mark', '#A3ABB7'));
+    shadowMat.opacity = parseFloat(v('--shadow', '0.26'));
+  }
+  applyTheme();
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+  new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  /* ============================================================
+     The shoe, modelled in code.
+     Base space: X runs heel (-1.5) to toe (+1.5), Y up, Z across.
+     Every part is lofted from the same profile functions, then
+     bent by deform() for toe spring and heel lean.
+     ============================================================ */
+  const L = 3, X0 = -1.5, EY = 0.8, YB = -0.03;
+  const clamp01 = (x) => Math.min(1, Math.max(0, x));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const sm = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+  function spline(pts) {
+    const slope = (j) => { const a = pts[Math.max(0, j - 1)], b = pts[Math.min(pts.length - 1, j + 1)]; return (b[1] - a[1]) / (b[0] - a[0]); };
+    return (t) => {
+      if (t <= pts[0][0]) return pts[0][1];
+      if (t >= pts[pts.length - 1][0]) return pts[pts.length - 1][1];
+      let i = 0; while (t > pts[i + 1][0]) i++;
+      const [t0, v0] = pts[i], [t1, v1] = pts[i + 1], h = t1 - t0, s = (t - t0) / h, s2 = s * s, s3 = s2 * s;
+      return (2 * s3 - 3 * s2 + 1) * v0 + (s3 - 2 * s2 + s) * slope(i) * h + (-2 * s3 + 3 * s2) * v1 + (s3 - s2) * slope(i + 1) * h;
+    };
+  }
+
+  // Footprint half-width along the shoe: narrow heel, waisted arch, wide forefoot, rounded ends.
+  const footW = (t) => {
+    t = clamp01(t);
+    const body = 0.40 + 0.13 * sm(0.28, 0.68, t) - 0.035 * Math.exp(-(((t - 0.36) / 0.12) ** 2));
+    const p = 3 - 0.8 * t;
+    return body * Math.pow(Math.max(0, 1 - Math.pow(Math.abs(2 * t - 1), p)), 1 / p);
+  };
+  const zC = (t) => -0.08 * sm(0.35, 1, clamp01(t));              // the last curves inward toward the big toe
+  const upW = (t) => footW(t) * 0.95;
+  const upH = spline([[0, 0.76], [0.04, 0.84], [0.12, 0.82], [0.22, 0.75], [0.33, 0.76], [0.42, 0.77], [0.55, 0.62], [0.70, 0.45], [0.84, 0.35], [0.93, 0.29], [0.975, 0.23], [1, 0.11]]);
+  const upE = (t) => 0.95 - 0.33 * sm(0.45, 0.85, t);               // cross-section: A-shaped at the heel, boxy at the toe
+  const endPush = (t, off) => off * (sm(0.92, 1, t) - (1 - sm(0, 0.08, t)));
+  const soleT = spline([[0, 0.30], [0.25, 0.31], [0.5, 0.26], [0.75, 0.19], [1, 0.13]]);
+
+  function upperPoint(t, th, off = 0) {
+    const w = upW(t) + off, h = upH(t) + off, c = Math.cos(th), s = Math.max(0, Math.sin(th));
+    return [X0 + t * L + endPush(t, off), YB + (h - YB) * Math.pow(s, EY), zC(t) + w * Math.sign(c) * Math.pow(Math.abs(c), upE(t))];
+  }
+  function surfY(x, z) {                                            // height of the upper above plan point (x, z)
+    const t = clamp01((x - X0) / L), w = upW(t);
+    if (w < 1e-4) return YB;
+    const r = Math.abs(z - zC(t)) / w;
+    if (r >= 1) return YB;
+    const c = Math.pow(r, 1 / upE(t));
+    return YB + (upH(t) - YB) * Math.pow(Math.sqrt(1 - c * c), EY);
+  }
+  function deform(p) {
+    const t = (p[0] - X0) / L;
+    const y = p[1] + 0.24 * Math.pow(sm(0.60, 1.02, t), 1.5) + 0.05 * sm(0.14, -0.02, t);
+    const x = p[0] + (p[1] > 0 ? 0.13 * (1 - sm(0, 0.35, t)) * p[1] * p[1] : 0);
+    return [x, y, p[2]];
+  }
+  const surfPoint = (x, z, lift = 0) => deform([x, surfY(x, z) + lift, z]);
+  function surfNormal(x, z) {
+    const e = 0.01, a = surfPoint(x + e, z), b = surfPoint(x - e, z), c = surfPoint(x, z + e), d = surfPoint(x, z - e);
+    const px = new THREE.Vector3(a[0] - b[0], a[1] - b[1], a[2] - b[2]), pz = new THREE.Vector3(c[0] - d[0], c[1] - d[1], c[2] - d[2]);
+    return pz.cross(px).normalize();
+  }
+
+  // Collar opening (plan ellipse on top of the heel half)
+  const OPEN = { x: X0 + 0.215 * L, rx: 0.47, rz: 0.215 };
+  const openD = (x, z) => Math.hypot((x - OPEN.x) / OPEN.rx, (z - zC((x - X0) / L)) / OPEN.rz);
+
+  // Generic lofted grid: fn(u, v) -> [x, y, z, texU, texV, shade]
+  function grid(nu, nv, fn, closed = false, tips = null) {
+    const n = (nu + 1) * (nv + 1);
+    const pos = new Float32Array(n * 3), uv = new Float32Array(n * 2), col = new Float32Array(n * 3), idx = [];
+    let k = 0;
+    for (let i = 0; i <= nu; i++) for (let j = 0; j <= nv; j++, k++) {
+      const r = fn(i / nu, j / nv), sh = r[5] === undefined ? 1 : r[5];
+      pos.set([r[0], r[1], r[2]], k * 3);
+      uv.set([r[3] || 0, r[4] || 0], k * 2);
+      col.set([sh, sh, sh], k * 3);
+    }
+    for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) {
+      const a = i * (nv + 1) + j, b = a + 1, c = a + nv + 1, d = c + 1;
+      idx.push(a, c, b, b, c, d);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    if (tips) {                                                     // the first/last station collapses to a line: point its normals along the shoe
+      const nrm = g.attributes.normal;
+      const facing = (row, dir) => {                                 // match the winding, so double-sided shading stays consistent
+        let sx = 0; for (let j = 0; j <= nv; j++) sx += nrm.getX(row * (nv + 1) + j);
+        return sx * dir >= 0 ? dir : -dir;
+      };
+      const n0 = tips[0] ? facing(1, tips[0]) : 0, n1 = tips[1] ? facing(nu - 1, tips[1]) : 0;
+      for (let j = 0; j <= nv; j++) {
+        if (n0) nrm.setXYZ(j, n0, 0, 0);
+        if (n1) nrm.setXYZ(nu * (nv + 1) + j, n1, 0, 0);
+      }
+    }
+    if (closed) {                                                   // weld the seam normals of a closed ring
+      const nrm = g.attributes.normal;
+      for (let i = 0; i <= nu; i++) {
+        const a = i * (nv + 1), b = a + nv;
+        const x = nrm.getX(a) + nrm.getX(b), y = nrm.getY(a) + nrm.getY(b), z = nrm.getZ(a) + nrm.getZ(b), len = Math.hypot(x, y, z) || 1;
+        nrm.setXYZ(a, x / len, y / len, z / len); nrm.setXYZ(b, x / len, y / len, z / len);
+      }
+    }
+    return g;
+  }
+  const cheb = (u) => 0.5 - 0.5 * Math.cos(Math.PI * u);           // denser stations at heel and toe
+  const whiten = (g) => { const n = g.attributes.position.count; g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3)); return g; };
+
+  /* ---- Textures ---- */
+  const maxAniso = renderer.capabilities.getMaxAnisotropy();
+  function knitTexture() {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d');
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, 64, 64);
+    g.fillStyle = '#7a7a7a';
+    for (const [x, y] of [[16, 16], [48, 48]]) { g.beginPath(); g.ellipse(x, y, 9, 6, 0, 0, Math.PI * 2); g.fill(); }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = maxAniso;
+    return t;
+  }
+  function grainTexture() {
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d'), img = g.createImageData(256, 256);
+    let seed = 20261113;
+    const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    for (let i = 0; i < img.data.length; i += 4) { const v = 120 + rnd() * 90; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
+    g.putImageData(img, 0, 0);
+    g.filter = 'blur(0.6px)'; g.drawImage(c, 0, 0);
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(0.12, 0.12); t.anisotropy = maxAniso;
+    return t;
+  }
+  const knitTex = knitTexture(), grainTex = grainTexture();
+
+  /* ---- Materials ---- */
+  const upperMat = new THREE.MeshPhysicalMaterial({ vertexColors: true, side: THREE.DoubleSide, roughness: 0.9 });
+  const overlayMat = new THREE.MeshPhysicalMaterial({ side: THREE.DoubleSide, roughness: 0.55, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const soleMat = new THREE.MeshStandardMaterial({ roughness: 0.78 });
+  const outsoleMat = new THREE.MeshStandardMaterial({ roughness: 0.9 });
+  const laceMat = new THREE.MeshStandardMaterial({ roughness: 0.85 });
+  const eyeletMat = new THREE.MeshStandardMaterial({ color: 0xc4c8cf, roughness: 0.3, metalness: 0.9 });
+  const labelCanvas = document.createElement('canvas'); labelCanvas.width = 512; labelCanvas.height = 384;
+  const labelTex = new THREE.CanvasTexture(labelCanvas); labelTex.colorSpace = THREE.SRGBColorSpace; labelTex.anisotropy = maxAniso;
+  const labelMat = new THREE.MeshStandardMaterial({ map: labelTex, transparent: true, roughness: 0.8, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+
+  const shoe = new THREE.Group();
+  const add = (geo, mat, cast = true) => { const m = new THREE.Mesh(geo, mat); m.castShadow = cast; m.receiveShadow = true; shoe.add(m); return m; };
+
+  /* ---- Upper, with the collar opening pressed into it ---- */
+  add(grid(190, 60, (u, v) => {
+    const t = cheb(u), p = upperPoint(t, Math.PI * v);
+    const d = openD(p[0], p[2]);
+    let shade = 1;
+    if (d < 1) { p[1] -= 0.40 * sm(1, 0.78, d); if (d < 0.97) shade = 0.06; }
+    const q = deform(p);
+    return [q[0], q[1], q[2], t * 84, v * 45, shade];
+  }, false, [-1, 1]), upperMat);
+
+  /* ---- Padded collar around the opening ---- */
+  {
+    const pts = [];
+    for (let i = 0; i < 56; i++) {
+      const a = i / 56 * Math.PI * 2, x = OPEN.x + OPEN.rx * Math.cos(a), z = zC((x - X0) / L) + OPEN.rz * Math.sin(a);
+      pts.push(new THREE.Vector3(...surfPoint(x, z, 0.012)));
+    }
+    add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 160, 0.052, 12, true), overlayMat);
+  }
+
+  /* ---- Tongue ---- */
+  {
+    const g = whiten(new THREE.SphereGeometry(1, 28, 18));
+    const m = add(g, upperMat);
+    m.scale.set(0.27, 0.065, 0.185);
+    const x = OPEN.x + OPEN.rx * 0.84;
+    m.position.set(...deform([x, surfY(OPEN.x + OPEN.rx, zC(0.37)) + 0.02, zC(0.36)]));
+    m.rotation.z = -0.5;
+  }
+
+  /* ---- Overlays: heel counter, toe bumper, eyestays ---- */
+  function sidePatch(t0, t1, ycut, off, side, station, tips) {
+    return grid(64, 18, (u, v) => {
+      const t = lerp(t0, t1, station(u)), h = upH(t) + off, yc = Math.min(ycut(t), h);
+      const thMax = Math.asin(Math.pow(clamp01((yc - YB) / (h - YB)), 1 / EY));
+      const q = deform(upperPoint(t, side > 0 ? thMax * v : Math.PI - thMax * v, off));
+      return [q[0], q[1], q[2], u, v];
+    }, false, tips);
+  }
+  const heelCut = (t) => Math.pow(1 - sm(0, 0.27, t), 2);
+  const toeCut = (t) => 0.5 * Math.pow(sm(0.72, 0.97, t), 1.5);
+  for (const side of [1, -1]) {
+    add(sidePatch(0, 0.27, heelCut, 0.011, side, (u) => Math.pow(u, 3), [-1, 0]), overlayMat);
+    add(sidePatch(0.72, 1, toeCut, 0.011, side, (u) => 1 - Math.pow(1 - u, 3), [0, 1]), overlayMat);
+  }
+  const eyeA = (t) => 0.40 * upW(t);                                // half-distance between the eyelet rows
+  for (const side of [1, -1]) {
+    add(grid(36, 5, (u, v) => {
+      const t = lerp(0.385, 0.695, u), x = X0 + t * L, z = zC(t) + side * lerp(eyeA(t) - 0.05, eyeA(t) + 0.08, v);
+      const q = surfPoint(x, z, 0.012);
+      return [q[0], q[1], q[2], u, v];
+    }), overlayMat);
+  }
+
+  /* ---- Laces, eyelets and bow ---- */
+  const tube = (pts, r = 0.021, seg = 24) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p))), seg, r, 7);
+  function lacePath(t1, s1, t2, s2, over) {
+    const pts = [];
+    for (let k = 0; k <= 10; k++) {
+      const s = k / 10, t = lerp(t1, t2, s), x = X0 + t * L, z = zC(t) + lerp(s1 * eyeA(t1), s2 * eyeA(t2), s);
+      pts.push(surfPoint(x, z, 0.016 + (0.022 + over * 0.03) * Math.sin(Math.PI * s)));
+    }
+    return tube(pts);
+  }
+  const eyeT = [0, 1, 2, 3, 4, 5].map((i) => 0.418 + i * 0.05);
+  for (let i = 0; i < eyeT.length - 1; i++) {
+    add(lacePath(eyeT[i], -1, eyeT[i + 1], 1, 0), laceMat);
+    add(lacePath(eyeT[i], 1, eyeT[i + 1], -1, 1), laceMat);
+  }
+  add(lacePath(eyeT[5], -1, eyeT[5], 1, 0), laceMat);
+  add(lacePath(eyeT[0], -1, eyeT[0], 1, 0), laceMat);
+  for (const t of eyeT) for (const side of [1, -1]) {
+    const x = X0 + t * L, z = zC(t) + side * eyeA(t);
+    const m = add(new THREE.TorusGeometry(0.036, 0.011, 8, 22), eyeletMat, false);
+    m.position.set(...surfPoint(x, z, 0.016));
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), surfNormal(x, z));
+  }
+  {
+    const kt = eyeT[0] - 0.004, kx = X0 + kt * L, kz = zC(kt);
+    const rel = (list) => list.map(([dx, dz, lift]) => surfPoint(kx + dx, kz + dz, lift));
+    for (const s of [1, -1]) {
+      add(tube(rel([[0, 0, 0.05], [-0.035, 0.10 * s, 0.085], [-0.10, 0.25 * s, 0.07], [0.0, 0.31 * s, 0.04], [0.075, 0.21 * s, 0.05], [0.02, 0.03 * s, 0.06]]), 0.02, 40), laceMat);
+      add(tube(rel([[0, 0, 0.05], [0.09, 0.07 * s, 0.045], [0.17, 0.21 * s, 0.03], [0.21, 0.33 * s, 0.028]]), 0.02, 24), laceMat);
+    }
+    const knot = add(new THREE.SphereGeometry(1, 16, 12), laceMat);
+    knot.scale.set(0.055, 0.04, 0.065);
+    knot.position.set(...surfPoint(kx, kz, 0.055));
+  }
+
+  /* ---- Heel label for the initials ---- */
+  const LABEL_OFF = 0.02;
+  function heelX(y, z) {                                            // solve the station where the heel surface passes through (y, z)
+    const f = (t) => {
+      const w = upW(t) + LABEL_OFF; if (w < 1e-5) return 1;
+      return Math.pow(Math.abs(z - zC(t)) / w, 2 / upE(t)) + Math.pow(clamp01((y - YB) / (upH(t) + LABEL_OFF - YB)), 2 / EY) - 1;
+    };
+    let lo = 0, hi = 0.3;
+    for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2; if (f(mid) > 0) lo = mid; else hi = mid; }
+    return X0 + hi * L + endPush(hi, LABEL_OFF);
+  }
+  const label = add(grid(20, 14, (u, v) => {
+    const z = lerp(-0.175, 0.175, u), y = lerp(0.32, 0.585, v);
+    const q = deform([heelX(y, z), y, z]);
+    return [q[0], q[1], q[2], u, v];
+  }), labelMat, false);
+  label.visible = false;
+
+  function drawLabel(text, ink) {
+    const g = labelCanvas.getContext('2d'), W = labelCanvas.width, H = labelCanvas.height;
+    g.clearRect(0, 0, W, H);
+    g.strokeStyle = ink; g.fillStyle = ink;
+    g.lineWidth = 6; g.setLineDash([18, 12]);
+    g.beginPath(); g.roundRect(22, 22, W - 44, H - 44, 40); g.stroke();
+    g.setLineDash([]);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    let size = 210;
+    do { g.font = `800 ${size}px Archivo, "Arial Narrow", Arial, sans-serif`; size -= 8; } while (g.measureText(text).width > W - 110 && size > 60);
+    g.fillText(text, W / 2, H / 2 + 12);
+    labelTex.needsUpdate = true;
+  }
+
+  /* ---- Midsole and outsole ---- */
+  function soleRing(yTopFn, yBotFn, wScale) {
+    return grid(130, 44, (u, v) => {
+      const ts = cheb(u), x = X0 - 0.05 + ts * (L + 0.1), th = Math.PI * 2 * v, c = Math.cos(th), s = Math.sin(th);
+      const w = footW(ts) * wScale, top = yTopFn(ts), bot = yBotFn(ts), mid = (top + bot) / 2, half = (top - bot) / 2;
+      const q = deform([x, mid + half * Math.sign(s) * Math.pow(Math.abs(s), 0.4), zC((x - X0) / L) + w * Math.sign(c) * Math.pow(Math.abs(c), 0.42)]);
+      return [q[0], q[1], q[2], u, v];
+    }, true, [-1, 1]);
+  }
+  add(soleRing(() => 0.055, (t) => -soleT(t), 1.06), soleMat);
+  add(soleRing((t) => -soleT(t) + 0.02, (t) => -soleT(t) - 0.04, 1.04), outsoleMat);
+
+  /* ---- Seat the shoe on the turntable ---- */
+  const box = new THREE.Box3().setFromObject(shoe);
+  const SHOE_Y = TT_H - box.min.y + 0.002;
+  shoe.position.set(-(box.min.x + box.max.x) / 2, SHOE_Y, -(box.min.z + box.max.z) / 2);
+  const rig = new THREE.Group();           // hop and spin happen here, on top of the turntable rotation
+  rig.add(shoe);
+  turn.add(rig);
+  turn.rotation.y = -0.3;
+
+  /* ---- Apply a configuration ---- */
+  const luminance = (hex) => { const c = new THREE.Color(hex); return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b; };
+  let lastMaterial = null, lastLabel = '';
+  function apply(s) {
+    const up = find('upper', s.upper).hex, so = find('sole', s.sole).hex, la = find('laces', s.laces).hex;
+    upperMat.color.set(up);
+    overlayMat.color.set(up).multiplyScalar(0.72);
+    upperMat.sheenColor.set(up);
+    soleMat.color.set(so);
+    outsoleMat.color.set(so).multiplyScalar(0.28);
+    laceMat.color.set(la);
+    if (s.material !== lastMaterial) {
+      lastMaterial = s.material;
+      if (s.material === 'leather') {
+        Object.assign(upperMat, { map: null, bumpMap: grainTex, bumpScale: 0.35, roughness: 0.4, sheen: 0, clearcoat: 0.4, clearcoatRoughness: 0.4 });
+        Object.assign(overlayMat, { roughness: 0.34, clearcoat: 0.45, clearcoatRoughness: 0.35 });
+      } else {
+        Object.assign(upperMat, { map: knitTex, bumpMap: knitTex, bumpScale: 1.2, roughness: 0.94, sheen: 0.25, sheenRoughness: 0.9, clearcoat: 0 });
+        Object.assign(overlayMat, { roughness: 0.6, clearcoat: 0, clearcoatRoughness: 0 });
+      }
+      upperMat.needsUpdate = true; overlayMat.needsUpdate = true;
+    }
+    const key = `${s.initials}|${up}`;
+    if (key !== lastLabel) {
+      lastLabel = key;
+      label.visible = !!s.initials;
+      if (s.initials) drawLabel(s.initials, luminance(up) > 0.32 ? '#1b1e23' : '#f5f4ef');
+    }
+  }
+  apply(state);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { lastLabel = ''; apply(state); });
+
+  /* ---- Add-to-bag hop ---- */
+  let hopStart = -1;
+  const HOP = 1.25;
+  function celebrate() { hopStart = performance.now() / 1000; }
+  function poseHop(now) {
+    if (hopStart < 0) return;
+    const k = (now - hopStart) / HOP;
+    if (k >= 1) { hopStart = -1; rig.position.y = 0; rig.rotation.y = 0; rig.scale.set(1, 1, 1); return; }
+    const ease = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    rig.position.y = reduceMotion ? 0 : Math.sin(Math.PI * k) * 0.95;
+    rig.rotation.y = reduceMotion ? 0 : ease * Math.PI * 2;
+    const squash = reduceMotion ? 0 : 0.10 * Math.exp(-Math.pow((k - 0.04) / 0.05, 2)) + 0.12 * Math.exp(-Math.pow((k - 0.97) / 0.045, 2));
+    rig.scale.set(1 + squash * 0.6, 1 - squash, 1 + squash * 0.6);
+  }
+
+  /* ---- Sizing and render loop ---- */
+  const stage = canvas.parentElement;
+  let userZoomed = false;
+  controls.addEventListener('start', () => { userZoomed = true; });
+  function resize() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    const vHalf = THREE.MathUtils.degToRad(camera.fov / 2), hHalf = Math.atan(Math.tan(vHalf) * camera.aspect);
+    const fit = Math.max(1.55 / Math.tan(vHalf), 2.55 / Math.tan(hHalf));
+    controls.minDistance = fit * 0.6; controls.maxDistance = fit * 1.5;
+    if (!userZoomed) camera.position.sub(TARGET).setLength(fit).add(TARGET);
+  }
+  new ResizeObserver(resize).observe(stage);
+  resize();
+
+  let last = performance.now() / 1000;
+  renderer.setAnimationLoop(() => {
+    const now = performance.now() / 1000, dt = Math.min(0.05, now - last);
+    last = now;
+    if (spinning) turn.rotation.y += dt * 0.32;
+    poseHop(now);
+    controls.update();
+    renderer.render(scene, camera);
+  });
+
+  view3d = { apply, celebrate };
+  window.shoeConfigurator = { state, camera, turn, rig, label, totalPrice: () => totalPrice(state), ready: true };
+}
+
+/* ============================================================
+   Boot
+   ============================================================ */
+function start(saved) {
+  if (saved && typeof saved === 'object') {
+    for (const g of GROUPS) if (OPTIONS[g].some((o) => o.id === saved[g])) state[g] = saved[g];
+    state.initials = cleanInitials(saved.initials);
+  }
+  renderOptions();
+  syncSpinButton();
+  shownPrice = totalPrice(state);
+  update();
+  init3D();
+}
+const hot = window.claude?.hot;
+try { hot?.snapshot?.(() => ({ ...state })); } catch (err) { /* viewer hook is optional */ }
+if (hot?.ready) hot.ready(start); else start(hot?.data ?? {});
+</script>
+</body>
+</html>
