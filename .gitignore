@@ -6,6 +6,7 @@
 .DS_Store
 /build
 /app/build
+/jarvis/build
 /captures
 .externalNativeBuild
 .cxx
@@ -18,3 +19,4 @@ local.properties
 *.jks
 keystore.properties
 /app/release/
+/jarvis/release/

@@ -27,5 +27,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "FocusZone"
 
-// El proyecto tiene un solo modulo por ahora: "app" (la aplicacion en si).
+// El proyecto tiene dos modulos, y cada uno es una app independiente:
+//  - "app"    = FocusZone (enfoque para estudiar).
+//  - "jarvis" = JARVIS (asistente personal: tareas, habitos, alarma con voz, notas).
+// En Android Studio eliges cual instalar en el desplegable junto al boton Run.
 include(":app")
+include(":jarvis")

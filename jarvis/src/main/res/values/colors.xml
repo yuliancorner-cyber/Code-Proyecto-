@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Negro puro (AMOLED): los pixeles negros quedan apagados. -->
+    <color name="window_background">#FF000000</color>
+    <color name="ic_launcher_background">#FF000000</color>
+    <color name="accent_cyan">#FF00E5FF</color>
+</resources>

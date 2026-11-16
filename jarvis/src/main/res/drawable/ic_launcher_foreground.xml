@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono de JARVIS: dos anillos y un nucleo cian sobre negro. Todo queda
+     dentro de la "zona segura" central para que ningun celular lo recorte. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Anillo exterior -->
+    <path
+        android:pathData="M54,54m-25,0a25,25 0,1 1,50 0a25,25 0,1 1,-50 0"
+        android:strokeColor="#FF00E5FF"
+        android:strokeWidth="3" />
+    <!-- Anillo interior, segmentado -->
+    <path
+        android:pathData="M54,37.5a16.5,16.5 0,0 1,14.3 8.25"
+        android:strokeColor="#FF00E5FF"
+        android:strokeLineCap="round"
+        android:strokeWidth="4" />
+    <path
+        android:pathData="M68.3,62.25a16.5,16.5 0,0 1,-28.6 0"
+        android:strokeColor="#FF00E5FF"
+        android:strokeLineCap="round"
+        android:strokeWidth="4" />
+    <path
+        android:pathData="M39.7,45.75a16.5,16.5 0,0 1,14.3 -8.25"
+        android:strokeColor="#FF00E5FF"
+        android:strokeAlpha="0.45"
+        android:strokeLineCap="round"
+        android:strokeWidth="4" />
+    <!-- Nucleo -->
+    <path
+        android:fillColor="#FF00E5FF"
+        android:pathData="M54,54m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+</vector>
