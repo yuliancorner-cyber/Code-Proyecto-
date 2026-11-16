@@ -57,7 +57,6 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:label="${appName}"
             android:theme="@style/Theme.Jarvis.Splash"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize"

@@ -155,7 +155,7 @@ private fun rememberNowMinutes(): Int {
 }
 
 @Composable
-private fun RingingScreen(speaking: Boolean, onSnooze: () -> Unit, onDismiss: () -> Unit) {
+internal fun RingingScreen(speaking: Boolean, onSnooze: () -> Unit, onDismiss: () -> Unit) {
     val settings by AppGraph.settings.flow.collectAsStateWithLifecycle()
     val now = rememberNowMinutes()
     val name = settings.userName.trim()
@@ -225,7 +225,7 @@ private fun RingingScreen(speaking: Boolean, onSnooze: () -> Unit, onDismiss: ()
 }
 
 @Composable
-private fun BriefingScreen(state: AlarmUi, onStopVoice: () -> Unit, onDone: () -> Unit) {
+internal fun BriefingScreen(state: AlarmUi, onStopVoice: () -> Unit, onDone: () -> Unit) {
     val today = LocalDate.now().toEpochDay()
     val steps by rememberFlowState(emptyList()) { AppGraph.repo.routine.observeSteps() }
     val checks by rememberFlowState(emptyList(), today) { AppGraph.repo.routine.observeChecks(today) }

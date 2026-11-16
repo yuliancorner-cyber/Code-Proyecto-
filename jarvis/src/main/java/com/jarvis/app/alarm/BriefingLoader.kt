@@ -90,7 +90,7 @@ object BriefingPlayer {
                 val briefing = BriefingLoader.load()
                 last.value = briefing
                 val voice = speaker ?: Speaker(AppGraph.appContext, asAlarm = false).also { speaker = it }
-                voice.speak(briefing.all, AppGraph.settings.value.speechRate)
+                voice.speak(briefing.all, VoiceStyle.from(AppGraph.settings.value))
             } finally {
                 state.value = false
             }

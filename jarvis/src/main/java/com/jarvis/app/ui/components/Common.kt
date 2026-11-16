@@ -286,8 +286,9 @@ fun ValueRow(
             Icon(icon, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(12.dp))
         }
-        Text(label, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, modifier = Modifier.weight(1f))
-        Spacer(Modifier.width(12.dp))
+        // El rotulo ocupa lo que necesite; el valor, el resto, pegado a la derecha.
+        Text(label, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+        Spacer(Modifier.width(16.dp))
         Text(
             value,
             style = MaterialTheme.typography.bodyLarge,
@@ -295,7 +296,7 @@ fun ValueRow(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f, fill = false)
+            modifier = Modifier.weight(1f)
         )
     }
 }

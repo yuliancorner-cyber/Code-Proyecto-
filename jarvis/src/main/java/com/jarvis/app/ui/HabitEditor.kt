@@ -127,7 +127,7 @@ fun HabitEditorScreen(habitId: Long?, onClose: () -> Unit) {
             )
         }
 
-        FieldLabel("Your plan")
+        FieldLabel("What, when and where")
         OutlinedTextField(
             value = habit.behavior,
             onValueChange = { habit = habit.copy(behavior = it) },

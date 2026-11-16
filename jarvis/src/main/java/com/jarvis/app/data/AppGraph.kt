@@ -18,38 +18,50 @@ import kotlinx.coroutines.flow.stateIn
  * los recordatorios. Se prepara en JarvisApp.onCreate, antes que todo lo demas.
  */
 object AppGraph {
-    lateinit var appContext: Context
-        private set
 
-    val settings: SettingsStore by lazy { SettingsStore(appContext) }
-    val db: AppDatabase by lazy { AppDatabase.get(appContext) }
-    val weather: WeatherRepo by lazy { WeatherRepo(appContext, settings) }
-    val repo: Repo by lazy { Repo(appContext, db) }
+    /** Las piezas que dependen del contexto de la app. Se crean juntas en [init]. */
+    private class Graph(val appContext: Context) {
+        val settings: SettingsStore by lazy { SettingsStore(appContext) }
+        val db: AppDatabase by lazy { AppDatabase.create(appContext) }
+        val weather: WeatherRepo by lazy { WeatherRepo(appContext, settings) }
+        val repo: Repo by lazy { Repo(appContext, db) }
 
-    /**
-     * Para trabajos que deben terminar aunque se cierre la pantalla que los
-     * inicio (guardar, reprogramar alarmas...).
-     */
-    val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val data: StateFlow<AppData?> by lazy {
+            val tasks = combine(repo.tasks.observeAll(), repo.tasks.observeSubtasks(), ::Pair)
+            val habits = combine(repo.habits.observeAll(), repo.habits.observeChecks(), ::Pair)
+            val routine = combine(repo.routine.observeSteps(), repo.routine.observeAllChecks(), ::Pair)
+            combine(tasks, habits, routine, repo.notes.observeAll()) { t, h, r, notes ->
+                AppData(
+                    tasks = t.first, subtasks = t.second,
+                    habits = h.first, habitChecks = h.second,
+                    routineSteps = r.first, routineChecks = r.second,
+                    notes = notes
+                )
+            }.stateIn(scope, SharingStarted.WhileSubscribed(5_000), null)
+        }
+    }
+
+    @Volatile
+    private lateinit var graph: Graph
+
+    val appContext: Context get() = graph.appContext
+    val settings: SettingsStore get() = graph.settings
+    val db: AppDatabase get() = graph.db
+    val weather: WeatherRepo get() = graph.weather
+    val repo: Repo get() = graph.repo
 
     /**
      * TODOS los datos de la app en un solo paquete que se actualiza solo cada
      * vez que cambia cualquier tabla. Es null mientras se carga por primera vez.
      * Las pantallas leen de aqui y filtran con las funciones de logic/.
      */
-    val data: StateFlow<AppData?> by lazy {
-        val tasks = combine(repo.tasks.observeAll(), repo.tasks.observeSubtasks(), ::Pair)
-        val habits = combine(repo.habits.observeAll(), repo.habits.observeChecks(), ::Pair)
-        val routine = combine(repo.routine.observeSteps(), repo.routine.observeAllChecks(), ::Pair)
-        combine(tasks, habits, routine, repo.notes.observeAll()) { t, h, r, notes ->
-            AppData(
-                tasks = t.first, subtasks = t.second,
-                habits = h.first, habitChecks = h.second,
-                routineSteps = r.first, routineChecks = r.second,
-                notes = notes
-            )
-        }.stateIn(scope, SharingStarted.WhileSubscribed(5_000), null)
-    }
+    val data: StateFlow<AppData?> get() = graph.data
+
+    /**
+     * Para trabajos que deben terminar aunque se cierre la pantalla que los
+     * inicio (guardar, reprogramar alarmas...).
+     */
+    val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     // Cola de acciones: se ejecutan de una en una y en el orden en que se
     // pidieron. Sin esto, dos guardados seguidos (p. ej. al escribir rapido)
@@ -73,8 +85,13 @@ object AppGraph {
         actions.trySend(action)
     }
 
+    /**
+     * Prepara todo. En el celular se llama una sola vez por arranque; en las
+     * pruebas automaticas, una vez por prueba (cada una con datos limpios).
+     */
     fun init(context: Context) {
-        if (!::appContext.isInitialized) appContext = context.applicationContext
+        val app = context.applicationContext
+        if (!::graph.isInitialized || graph.appContext !== app) graph = Graph(app)
     }
 }
 

@@ -63,12 +63,15 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.jarvis.app.alarm.AlarmScheduler
 import com.jarvis.app.alarm.AlarmService
 import com.jarvis.app.alarm.Speaker
+import com.jarvis.app.alarm.VoiceStyle
 import com.jarvis.app.data.AppData
 import com.jarvis.app.data.AppGraph
 import com.jarvis.app.data.BackupCodec
 import com.jarvis.app.data.Settings
 import com.jarvis.app.logic.City
 import com.jarvis.app.logic.Formats
+import com.jarvis.app.logic.VoiceOption
+import com.jarvis.app.logic.VoicePicker
 import com.jarvis.app.reminders.Notifications
 import com.jarvis.app.reminders.ReminderScheduler
 import com.jarvis.app.ui.components.ChoiceRow
@@ -109,6 +112,7 @@ fun SettingsScreen(
     var showName by remember { mutableStateOf(false) }
     var showCity by remember { mutableStateOf(false) }
     var showAlarmTime by remember { mutableStateOf(false) }
+    var showVoices by remember { mutableStateOf(false) }
     var pendingImport by remember { mutableStateOf<String?>(null) }
 
     // Voz para el boton "Test voice"; se libera al salir de la pantalla.
@@ -232,6 +236,19 @@ fun SettingsScreen(
                         options = listOf(10, 20, 30, 60).map { it to "$it seconds" },
                         onSelect = { s -> AppGraph.settings.update { it.copy(toneSeconds = s) } }
                     )
+                    ValueRow(
+                        label = "Voice",
+                        value = if (settings.voiceName.isBlank()) "Automatic (deep male)" else "Chosen by you",
+                        onClick = { showVoices = true }
+                    )
+                    ChoiceRow(
+                        label = "Voice tone",
+                        value = VoicePicker.pitchLabel(settings.voicePitch),
+                        options = listOf(
+                            VoicePicker.PITCH_NORMAL, VoicePicker.PITCH_DEEP, VoicePicker.PITCH_VERY_DEEP
+                        ).map { it to VoicePicker.pitchLabel(it) },
+                        onSelect = { p -> AppGraph.settings.update { it.copy(voicePitch = p) } }
+                    )
                     ChoiceRow(
                         label = "Voice speed",
                         value = speedLabel(settings.speechRate),
@@ -252,7 +269,7 @@ fun SettingsScreen(
                                         if (name.isEmpty()) "Hello. JARVIS is online." else "Hello, $name. JARVIS is online.",
                                         "This is how I will sound every morning."
                                     ),
-                                    settings.speechRate
+                                    VoiceStyle.from(settings)
                                 )
                                 if (!ok) {
                                     Toast.makeText(
@@ -349,6 +366,16 @@ fun SettingsScreen(
             onDismiss = { showCity = false }
         )
     }
+    if (showVoices) {
+        VoiceDialog(
+            speaker = speaker,
+            settings = settings,
+            onDismiss = {
+                speaker.stop()
+                showVoices = false
+            }
+        )
+    }
     if (showAlarmTime) {
         TimeDialog(
             initialMinutes = settings.alarmMinutes,
@@ -400,6 +427,91 @@ internal fun setCity(city: City) {
             cityLat = city.lat,
             cityLon = city.lon
         )
+    }
+}
+
+/**
+ * Elegir la voz de JARVIS. "Automatic" busca la voz masculina del celular;
+ * debajo salen todas las voces en ingles instaladas. Al tocar una, se
+ * selecciona y dice una frase de muestra con el tono elegido.
+ */
+@Composable
+private fun VoiceDialog(speaker: Speaker, settings: Settings, onDismiss: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    // null = todavia cargando la lista del motor de voz.
+    var voices by remember { mutableStateOf<List<VoiceOption>?>(null) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { voices = speaker.englishVoices() }
+
+    fun pick(name: String) {
+        AppGraph.settings.update { it.copy(voiceName = name) }
+        val style = VoiceStyle.from(AppGraph.settings.value)
+        scope.launch {
+            speaker.stop()
+            speaker.speak(listOf("Good morning. This is how I will sound."), style)
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("JARVIS voice") },
+        text = {
+            Column(
+                Modifier
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    "Tap a voice to hear it. The tone setting makes any voice deeper.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary
+                )
+                Spacer(Modifier.height(8.dp))
+                VoiceRow(
+                    title = "Automatic",
+                    detail = "The deepest male voice on this phone",
+                    selected = settings.voiceName.isBlank(),
+                    onClick = { pick("") }
+                )
+                val list = voices
+                when {
+                    list == null -> Text("Loading voices…", color = TextSecondary)
+                    list.isEmpty() -> Text(
+                        "No English voices found. Tap Voice settings below to install " +
+                            "Google's speech engine and download English.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Warning
+                    )
+                    else -> for (voice in list) {
+                        VoiceRow(
+                            title = VoicePicker.label(voice),
+                            detail = voice.name,
+                            selected = settings.voiceName == voice.name,
+                            onClick = { pick(voice.name) }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } }
+    )
+}
+
+@Composable
+private fun VoiceRow(title: String, detail: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge, color = if (selected) Cyan else TextPrimary)
+            Text(detail, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+        }
+        if (selected) {
+            Icon(Icons.Rounded.CheckCircle, contentDescription = "Selected", tint = Cyan, modifier = Modifier.size(20.dp))
+        }
     }
 }
 

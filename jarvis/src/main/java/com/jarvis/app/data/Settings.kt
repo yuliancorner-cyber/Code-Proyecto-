@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.jarvis.app.logic.City
 import com.jarvis.app.logic.Days
+import com.jarvis.app.logic.VoicePicker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -31,7 +32,11 @@ data class Settings(
     val toneSeconds: Int = 20,
     val voiceEnabled: Boolean = true,
     /** Velocidad de la voz (1.0 = normal). */
-    val speechRate: Float = 1.0f
+    val speechRate: Float = 1.0f,
+    /** Tono de la voz: por debajo de 1.0 suena mas grave. */
+    val voicePitch: Float = VoicePicker.PITCH_DEEP,
+    /** Voz elegida a mano en Ajustes; "" = automatica (la mas grave y masculina). */
+    val voiceName: String = ""
 ) {
     val city: City?
         get() = if (cityLat != null && cityLon != null && cityName.isNotBlank()) {
@@ -84,7 +89,9 @@ class SettingsStore(context: Context) {
             snoozeMinutes = prefs.getInt("snoozeMinutes", d.snoozeMinutes),
             toneSeconds = prefs.getInt("toneSeconds", d.toneSeconds),
             voiceEnabled = prefs.getBoolean("voiceEnabled", d.voiceEnabled),
-            speechRate = prefs.getFloat("speechRate", d.speechRate)
+            speechRate = prefs.getFloat("speechRate", d.speechRate),
+            voicePitch = prefs.getFloat("voicePitch", d.voicePitch),
+            voiceName = prefs.getString("voiceName", "") ?: ""
         )
     }
 
@@ -106,6 +113,8 @@ class SettingsStore(context: Context) {
             .putInt("toneSeconds", s.toneSeconds)
             .putBoolean("voiceEnabled", s.voiceEnabled)
             .putFloat("speechRate", s.speechRate)
+            .putFloat("voicePitch", s.voicePitch)
+            .putString("voiceName", s.voiceName)
             .apply()
     }
 }

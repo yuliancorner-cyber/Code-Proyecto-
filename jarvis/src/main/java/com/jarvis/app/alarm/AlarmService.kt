@@ -122,7 +122,7 @@ class AlarmService : Service() {
             while (isActive) {
                 delay(settings.toneSeconds.coerceIn(5, 120) * 1_000L)
                 if (settings.voiceEnabled) {
-                    say(text, settings.speechRate)
+                    say(text, VoiceStyle.from(settings))
                 }
                 if (SystemClock.elapsedRealtime() - startedAt > MAX_RING_MS) {
                     giveUp()
@@ -133,12 +133,12 @@ class AlarmService : Service() {
     }
 
     /** JARVIS lee el resumen con el tono bajito de fondo. */
-    private suspend fun say(text: Briefing, rate: Float) {
+    private suspend fun say(text: Briefing, style: VoiceStyle) {
         ducked = true
         applyToneVolume()
         AlarmState.update { it.copy(speaking = true) }
         try {
-            voice().speak(text.all, rate)
+            voice().speak(text.all, style)
         } finally {
             ducked = false
             applyToneVolume()
@@ -176,7 +176,7 @@ class AlarmService : Service() {
             if (settings.voiceEnabled) {
                 AlarmState.update { it.copy(speaking = true) }
                 try {
-                    voice().speak(text.all, settings.speechRate)
+                    voice().speak(text.all, VoiceStyle.from(settings))
                 } finally {
                     AlarmState.update { it.copy(speaking = false) }
                 }

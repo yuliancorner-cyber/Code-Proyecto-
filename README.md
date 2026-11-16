@@ -1,3 +1,15 @@
+# Dos apps en este proyecto
+
+| App | Carpeta | Qué es |
+|---|---|---|
+| **FocusZone** | `app/` | Enfoque para estudiar (todo lo que sigue más abajo) |
+| **JARVIS** | `jarvis/` | Asistente personal: tareas, hábitos, alarma con voz y notas. **Ver [jarvis/README.md](jarvis/README.md)** |
+
+En Android Studio eliges cuál instalar en el desplegable que hay junto al botón
+**Run ▶** (`app` o `jarvis`). Son independientes: cada una con su ícono y sus datos.
+
+---
+
 # FocusZone
 
 App Android de **enfoque para estudiar**, de uso personal (no se publica en Play Store).

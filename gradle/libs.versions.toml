@@ -33,6 +33,11 @@ espressoCore = "3.6.1"
 # Solo para las pruebas de JARVIS: el lector de JSON que en el celular ya trae
 # Android, pero que en el PC (pruebas) hay que anadir aparte.
 orgJson = "20240303"
+# Robolectric simula Android dentro del PC: permite probar la base de datos,
+# las alarmas y las pantallas de JARVIS sin celular. Roborazzi guarda una
+# imagen de cada pantalla durante esas pruebas.
+robolectric = "4.14.1"
+roborazzi = "1.40.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -64,6 +69,9 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 org-json = { group = "org.json", name = "json", version.ref = "orgJson" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
+roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

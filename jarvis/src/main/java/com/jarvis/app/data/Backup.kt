@@ -99,6 +99,8 @@ object BackupCodec {
         .put("toneSeconds", s.toneSeconds)
         .put("voiceEnabled", s.voiceEnabled)
         .put("speechRate", s.speechRate.toDouble())
+        .put("voicePitch", s.voicePitch.toDouble())
+        .put("voiceName", s.voiceName)
 
     private fun settings(o: JSONObject): Settings {
         val d = Settings()
@@ -119,7 +121,9 @@ object BackupCodec {
             snoozeMinutes = o.optInt("snoozeMinutes", d.snoozeMinutes),
             toneSeconds = o.optInt("toneSeconds", d.toneSeconds),
             voiceEnabled = o.optBoolean("voiceEnabled", d.voiceEnabled),
-            speechRate = o.optDouble("speechRate", d.speechRate.toDouble()).toFloat()
+            speechRate = o.optDouble("speechRate", d.speechRate.toDouble()).toFloat(),
+            voicePitch = o.optDouble("voicePitch", d.voicePitch.toDouble()).toFloat(),
+            voiceName = o.optString("voiceName", "")
         )
     }
 

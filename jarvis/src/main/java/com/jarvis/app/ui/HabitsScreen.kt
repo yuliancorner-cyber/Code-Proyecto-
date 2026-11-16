@@ -48,6 +48,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.jarvis.app.data.AppData
 import com.jarvis.app.data.AppGraph
 import com.jarvis.app.data.Habit
@@ -203,9 +204,9 @@ fun HabitsScreen(
 internal fun habitTitle(habit: Habit): String =
     listOf(habit.emoji.trim(), habit.name.trim()).filter { it.isNotEmpty() }.joinToString(" ")
 
-private val CELL = 34.dp
+private val CELL = 32.dp
 private val HEADER = 40.dp
-private val NAME_WIDTH = 116.dp
+private val NAME_WIDTH = 134.dp
 
 /**
  * La cuadricula del mes. La columna de nombres queda fija y los dias se
@@ -250,9 +251,11 @@ private fun MonthGrid(
                         Text(
                             habitTitle(habit),
                             style = MaterialTheme.typography.bodyMedium,
+                            fontSize = 13.sp,
                             color = TextPrimary,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(end = 6.dp)
                         )
                     }
                 }

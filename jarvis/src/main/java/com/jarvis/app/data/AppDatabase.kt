@@ -31,20 +31,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
 
     companion object {
-        @Volatile
-        private var instance: AppDatabase? = null
-
-        fun get(context: Context): AppDatabase =
-            instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "jarvis.db"
-                )
-                    .addCallback(SeedCallback)
-                    .build()
-                    .also { instance = it }
-            }
+        /** Abre (o crea) la base de datos. AppGraph la crea una sola vez y la comparte. */
+        fun create(context: Context): AppDatabase =
+            Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "jarvis.db")
+                .addCallback(SeedCallback)
+                .build()
 
         /**
          * Se ejecuta UNA sola vez, cuando la base de datos se crea (primera

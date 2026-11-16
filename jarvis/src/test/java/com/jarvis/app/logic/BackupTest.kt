@@ -24,7 +24,8 @@ class BackupTest {
             cityName = "Bogotá", cityRegion = "Bogota D.C.", cityCountry = "Colombia",
             cityLat = 4.60971, cityLon = -74.08175, fahrenheit = false,
             alarmEnabled = true, alarmHour = 5, alarmMinute = 15, alarmDays = Days.WEEKDAYS,
-            snoozeMinutes = 5, toneSeconds = 30, voiceEnabled = true, speechRate = 1.15f
+            snoozeMinutes = 5, toneSeconds = 30, voiceEnabled = true, speechRate = 1.15f,
+            voicePitch = 0.65f, voiceName = "en-gb-x-rjs-local"
         ),
         tasks = listOf(
             Task(

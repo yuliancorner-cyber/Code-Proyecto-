@@ -64,6 +64,20 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests {
+            // Las pruebas con Robolectric necesitan los recursos (iconos, textos).
+            isIncludeAndroidResources = true
+            all {
+                // Por defecto las pruebas de pantallas solo comprueban que todo
+                // se dibuja. Con  -Pscreenshots  ademas guardan las imagenes en
+                // jarvis/build/screenshots (ver README).
+                it.systemProperty("roborazzi.test.record", providers.gradleProperty("screenshots").isPresent)
+                it.maxHeapSize = "2g"
+            }
+        }
+    }
 }
 
 dependencies {
@@ -94,6 +108,13 @@ dependencies {
     testImplementation(libs.junit)
     // org.json viene dentro de Android, pero las pruebas corren en el PC.
     testImplementation(libs.org.json)
+    // Pruebas que necesitan "un Android": base de datos, alarmas y pantallas.
+    testImplementation(composeBom)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.junit)
+    testImplementation(libs.androidx.ui.test.junit4)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.ui.test.junit4)
