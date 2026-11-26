@@ -2,6 +2,7 @@ package com.jarvis.app.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.jarvis.app.logic.CheckInLogic
 import com.jarvis.app.logic.City
 import com.jarvis.app.logic.Days
 import com.jarvis.app.logic.VoicePicker
@@ -36,7 +37,12 @@ data class Settings(
     /** Tono de la voz: por debajo de 1.0 suena mas grave. */
     val voicePitch: Float = VoicePicker.PITCH_DEEP,
     /** Voz elegida a mano en Ajustes; "" = automatica (la mas grave y masculina). */
-    val voiceName: String = ""
+    val voiceName: String = "",
+
+    // Check-ins: JARVIS pregunta por tus habitos durante el dia.
+    val checkInsEnabled: Boolean = true,
+    /** Horas de las preguntas, en minutos desde medianoche. */
+    val checkInTimes: List<Int> = CheckInLogic.DEFAULT_TIMES
 ) {
     val city: City?
         get() = if (cityLat != null && cityLon != null && cityName.isNotBlank()) {
@@ -91,7 +97,12 @@ class SettingsStore(context: Context) {
             voiceEnabled = prefs.getBoolean("voiceEnabled", d.voiceEnabled),
             speechRate = prefs.getFloat("speechRate", d.speechRate),
             voicePitch = prefs.getFloat("voicePitch", d.voicePitch),
-            voiceName = prefs.getString("voiceName", "") ?: ""
+            voiceName = prefs.getString("voiceName", "") ?: "",
+            checkInsEnabled = prefs.getBoolean("checkInsEnabled", d.checkInsEnabled),
+            // Se guardan como texto "720,1020,1260". Sin la clave = valores por defecto.
+            checkInTimes = prefs.getString("checkInTimes", null)
+                ?.let { text -> CheckInLogic.normalize(text.split(',').mapNotNull { it.trim().toIntOrNull() }) }
+                ?: d.checkInTimes
         )
     }
 
@@ -115,6 +126,8 @@ class SettingsStore(context: Context) {
             .putFloat("speechRate", s.speechRate)
             .putFloat("voicePitch", s.voicePitch)
             .putString("voiceName", s.voiceName)
+            .putBoolean("checkInsEnabled", s.checkInsEnabled)
+            .putString("checkInTimes", s.checkInTimes.joinToString(","))
             .apply()
     }
 }

@@ -1,5 +1,6 @@
 package com.jarvis.app.data
 
+import com.jarvis.app.logic.CheckInLogic
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -101,6 +102,8 @@ object BackupCodec {
         .put("speechRate", s.speechRate.toDouble())
         .put("voicePitch", s.voicePitch.toDouble())
         .put("voiceName", s.voiceName)
+        .put("checkInsEnabled", s.checkInsEnabled)
+        .put("checkInTimes", JSONArray(s.checkInTimes))
 
     private fun settings(o: JSONObject): Settings {
         val d = Settings()
@@ -123,7 +126,11 @@ object BackupCodec {
             voiceEnabled = o.optBoolean("voiceEnabled", d.voiceEnabled),
             speechRate = o.optDouble("speechRate", d.speechRate.toDouble()).toFloat(),
             voicePitch = o.optDouble("voicePitch", d.voicePitch.toDouble()).toFloat(),
-            voiceName = o.optString("voiceName", "")
+            voiceName = o.optString("voiceName", ""),
+            checkInsEnabled = o.optBoolean("checkInsEnabled", d.checkInsEnabled),
+            checkInTimes = o.optJSONArray("checkInTimes")
+                ?.let { arr -> CheckInLogic.normalize((0 until arr.length()).map { arr.getInt(it) }) }
+                ?: d.checkInTimes
         )
     }
 
@@ -192,6 +199,7 @@ object BackupCodec {
         .putOpt("reminderMinutes", h.reminderMinutes)
         .put("position", h.position)
         .put("archived", h.archived)
+        .put("askInCheckIns", h.askInCheckIns)
 
     private fun habit(o: JSONObject): Habit = Habit(
         id = o.getLong("id"),
@@ -208,7 +216,8 @@ object BackupCodec {
         unit = o.optString("unit", ""),
         reminderMinutes = o.intOrNull("reminderMinutes"),
         position = o.optInt("position", 0),
-        archived = o.optBoolean("archived", false)
+        archived = o.optBoolean("archived", false),
+        askInCheckIns = o.optBoolean("askInCheckIns", true)
     )
 
     private fun note(n: Note): JSONObject = JSONObject()

@@ -32,7 +32,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -68,10 +70,12 @@ import com.jarvis.app.data.AppData
 import com.jarvis.app.data.AppGraph
 import com.jarvis.app.data.BackupCodec
 import com.jarvis.app.data.Settings
+import com.jarvis.app.logic.CheckInLogic
 import com.jarvis.app.logic.City
 import com.jarvis.app.logic.Formats
 import com.jarvis.app.logic.VoiceOption
 import com.jarvis.app.logic.VoicePicker
+import com.jarvis.app.reminders.CheckIns
 import com.jarvis.app.reminders.Notifications
 import com.jarvis.app.reminders.ReminderScheduler
 import com.jarvis.app.ui.components.ChoiceRow
@@ -82,6 +86,7 @@ import com.jarvis.app.ui.components.SectionLabel
 import com.jarvis.app.ui.components.TimeDialog
 import com.jarvis.app.ui.components.ValueRow
 import com.jarvis.app.ui.components.is24Hour
+import com.jarvis.app.ui.components.launchAction
 import com.jarvis.app.ui.theme.Cyan
 import com.jarvis.app.ui.theme.Hairline
 import com.jarvis.app.ui.theme.TextPrimary
@@ -91,6 +96,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+
+/** Cambia los ajustes de los check-ins y reprograma sus horas. */
+internal fun updateCheckIns(context: Context, change: (Settings) -> Settings) {
+    AppGraph.settings.update(change)
+    launchAction { ReminderScheduler.sync(context) }
+}
 
 /** Cambia los ajustes de la alarma y la vuelve a programar al momento. */
 internal fun updateAlarm(context: Context, change: (Settings) -> Settings) {
@@ -113,6 +124,8 @@ fun SettingsScreen(
     var showCity by remember { mutableStateOf(false) }
     var showAlarmTime by remember { mutableStateOf(false) }
     var showVoices by remember { mutableStateOf(false) }
+    // Hora de check-in que se esta editando: su valor, o -1 para anadir una nueva.
+    var editingCheckIn by remember { mutableStateOf<Int?>(null) }
     var pendingImport by remember { mutableStateOf<String?>(null) }
 
     // Voz para el boton "Test voice"; se libera al salir de la pantalla.
@@ -290,6 +303,80 @@ fun SettingsScreen(
             }
         }
 
+        // --------------------------------------------------------- Check-ins
+        item(key = "checkins") {
+            SectionLabel("Habit check-ins")
+            JarvisCard(padding = 12.dp, modifier = Modifier.padding(top = 8.dp)) {
+                SwitchRow("Ask me about my habits", settings.checkInsEnabled) { on ->
+                    updateCheckIns(context) { it.copy(checkInsEnabled = on) }
+                }
+                Text(
+                    "At these times a notification asks about each habit you haven't checked yet. " +
+                        "Answer Yes, Not today or Later right there. No need to open the app.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+                )
+                if (settings.checkInsEnabled) {
+                    val times = CheckInLogic.normalize(settings.checkInTimes)
+                    for (minutes in times) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            ValueRow(
+                                label = "Ask at",
+                                value = Formats.time(minutes, is24),
+                                icon = Icons.Rounded.Schedule,
+                                onClick = { editingCheckIn = minutes },
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = {
+                                updateCheckIns(context) { it.copy(checkInTimes = times - minutes) }
+                            }) {
+                                Icon(
+                                    Icons.Rounded.Close,
+                                    contentDescription = "Remove ${Formats.time(minutes, is24)}",
+                                    tint = TextSecondary
+                                )
+                            }
+                        }
+                    }
+                    if (times.isEmpty()) {
+                        Text(
+                            "No times yet. Add one below.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Warning,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp)
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { editingCheckIn = -1 },
+                            enabled = times.size < CheckInLogic.MAX_TIMES,
+                            modifier = Modifier.weight(1f)
+                        ) { Text("Add a time") }
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    val asked = CheckIns.startRound(context, minutes = null)
+                                    if (!asked) {
+                                        val message = if (!Notifications.enabled(context)) {
+                                            "Turn on notifications for JARVIS first."
+                                        } else {
+                                            "Nothing to ask: every habit is checked for today."
+                                        }
+                                        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) { Text("Check in now") }
+                    }
+                }
+            }
+        }
+
         // ------------------------------------------------------------ Rutina
         item(key = "routine") {
             SectionLabel("Morning routine")
@@ -374,6 +461,18 @@ fun SettingsScreen(
                 speaker.stop()
                 showVoices = false
             }
+        )
+    }
+    editingCheckIn?.let { editing ->
+        TimeDialog(
+            initialMinutes = if (editing >= 0) editing else 20 * 60,
+            title = if (editing >= 0) "Check-in time" else "New check-in time",
+            onConfirm = { minutes ->
+                val times = CheckInLogic.normalize(settings.checkInTimes).filter { it != editing }
+                updateCheckIns(context) { it.copy(checkInTimes = CheckInLogic.normalize(times + minutes)) }
+                editingCheckIn = null
+            },
+            onDismiss = { editingCheckIn = null }
         )
     }
     if (showAlarmTime) {
@@ -729,8 +828,9 @@ internal fun DeviceSetupCard(modifier: Modifier = Modifier) {
         HorizontalDivider(Modifier.padding(vertical = 8.dp), color = Hairline)
         Text(
             "On Xiaomi (HyperOS/MIUI) also turn on Autostart, set Battery saver to " +
-                "No restrictions, and under Other permissions allow \"Show on Lock screen\" " +
-                "and \"Display pop-up windows while running in the background\".",
+                "No restrictions, under Other permissions allow \"Show on Lock screen\" " +
+                "and \"Display pop-up windows while running in the background\", and under " +
+                "Notifications turn on \"Floating notifications\" so check-ins pop up.",
             style = MaterialTheme.typography.bodySmall,
             color = TextSecondary,
             modifier = Modifier.padding(horizontal = 4.dp)

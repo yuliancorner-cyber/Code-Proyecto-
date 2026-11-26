@@ -1,6 +1,7 @@
 package com.jarvis.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -235,7 +236,21 @@ fun HabitEditorScreen(habitId: Long?, onClose: () -> Unit) {
             }
         }
 
-        FieldLabel("Reminder")
+        FieldLabel("Reminders")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Ask me in check-ins", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+                Text(
+                    "JARVIS asks about it during the day if it isn't checked yet",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
+                )
+            }
+            Switch(
+                checked = habit.askInCheckIns,
+                onCheckedChange = { habit = habit.copy(askInCheckIns = it) }
+            )
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 "Remind me every scheduled day",

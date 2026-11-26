@@ -64,7 +64,9 @@ class AlarmServiceTest {
 
     /** Deja correr el hilo principal y los trabajos en segundo plano hasta que se cumpla algo. */
     private fun pump(what: String, until: () -> Boolean) {
-        repeat(400) {
+        // Margen amplio: la primera prueba paga el arranque del Android simulado.
+        val deadline = System.currentTimeMillis() + 20_000
+        while (System.currentTimeMillis() < deadline) {
             mainLooper.idle()
             if (until()) return
             Thread.sleep(15)

@@ -1,5 +1,6 @@
 package com.jarvis.app.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -99,7 +100,13 @@ data class Habit(
     /** Hora del recordatorio diario (minutos). null = sin recordatorio. */
     val reminderMinutes: Int? = null,
     val position: Int = 0,
-    val archived: Boolean = false
+    val archived: Boolean = false,
+    /**
+     * Si JARVIS pregunta por este habito en los check-ins del dia.
+     * Columna nueva en la version 2 de la base de datos (ver AppDatabase).
+     */
+    @ColumnInfo(defaultValue = "1")
+    val askInCheckIns: Boolean = true
 ) {
     companion object {
         const val CUE_TIME = "TIME"

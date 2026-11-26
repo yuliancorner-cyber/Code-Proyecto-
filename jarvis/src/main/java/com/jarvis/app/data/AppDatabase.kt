@@ -4,14 +4,20 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
  * La base de datos de JARVIS: el archivo "jarvis.db" en el almacenamiento
  * privado del celular. Solo se borra si desinstalas la app o borras sus datos.
  *
- * Si algun dia cambian las tablas hay que subir [version] y escribir una
- * "migracion" (ver BaseDatos.kt de FocusZone para un ejemplo).
+ * Versiones:
+ *  1 - primera version.
+ *  2 - columna "askInCheckIns" en habits (preguntas del dia).
+ *
+ * Cada vez que cambian las tablas se sube [version] y se escribe una
+ * "migracion" que pasa los datos de la version vieja a la nueva sin perder
+ * nada. Hay una prueba (MigrationTest) que lo comprueba con datos reales.
  */
 @Database(
     entities = [
@@ -20,7 +26,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         RoutineStep::class, RoutineCheck::class,
         Note::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -31,11 +37,21 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
 
     companion object {
+        const val NAME = "jarvis.db"
+
         /** Abre (o crea) la base de datos. AppGraph la crea una sola vez y la comparte. */
-        fun create(context: Context): AppDatabase =
-            Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "jarvis.db")
+        fun create(context: Context, name: String = NAME): AppDatabase =
+            Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, name)
+                .addMigrations(MIGRATION_1_2)
                 .addCallback(SeedCallback)
                 .build()
+
+        /** De la 1 a la 2: los habitos que ya tenias quedan con las preguntas activadas. */
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `habits` ADD COLUMN `askInCheckIns` INTEGER NOT NULL DEFAULT 1")
+            }
+        }
 
         /**
          * Se ejecuta UNA sola vez, cuando la base de datos se crea (primera

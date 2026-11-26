@@ -33,6 +33,30 @@ apaga en 10 minutos se detiene sola y deja una notificación.
 
 Los hábitos del resumen se dicen solo como cantidad ("10 habits"), no por nombre.
 
+**Check-ins de hábitos (v0.2):** a las **12:00 PM, 5:00 PM y 9:00 PM** (editables)
+llega una notificación que pregunta, uno por uno, por los hábitos que aún no
+marcaste hoy. Respondes ahí mismo, sin abrir la app, y se llena la cuadrícula:
+
+| Botón | Qué hace |
+|---|---|
+| **Yes** | Lo marca como hecho y pasa al siguiente |
+| **Not today** | No lo vuelve a preguntar hoy (queda sin marcar) |
+| **Later** | Lo pregunta en la próxima ronda |
+| **+1** / **All 8** | Para hábitos con contador (agua): suma uno o lo completa |
+
+- Un hábito con hora en su plan (p. ej. *read 10 pages at 9:00 PM*) no se pregunta
+  antes de esa hora. La última ronda del día pregunta por todo lo pendiente.
+- Al terminar sale un resumen corto (*"All caught up · 10 of 10"*) que se va solo.
+- Si marcas algo desde la app, la pregunta abierta se actualiza sola.
+- **Settings › Habit check-ins:** encender/apagar, cambiar, añadir o quitar horas,
+  y **Check in now** para probarlo al momento.
+- En cada hábito (pestaña Habits › tocar el hábito) puedes apagar **Ask me in check-ins**.
+- Con el celular bloqueado, si ocultas el contenido sensible en Ajustes, solo se ve
+  *"Habit check-in"*, nunca el nombre del hábito.
+- **Xiaomi:** para que la pregunta aparezca flotando arriba de la pantalla, en
+  *Ajustes › Notificaciones › JARVIS Dev* activa **Notificaciones flotantes**
+  (en el canal *Habit check-ins*).
+
 ## Instalarla
 
 1. En Android Studio: **Git › Pull…** y espera a que termine de sincronizar
@@ -88,15 +112,15 @@ JARVIS usa el motor de texto a voz del celular. Para que suene bien:
 elijas (Drive, Descargas…). **Import** reemplaza TODO lo que haya por el contenido
 del archivo. No hay sincronización en la nube: haz una copia de vez en cuando.
 
-## Pruebas automáticas (128)
+## Pruebas automáticas (152)
 
 Corren en el PC, sin celular. En Android Studio: panel izquierdo ›
 `jarvis/kotlin+java/com.jarvis.app (test)` › clic derecho › **Run 'Tests in…'**.
 
 | Carpeta | Qué prueba |
 |---|---|
-| `logic/` (103) | Próxima alarma, repeticiones, intenciones, rachas y porcentajes, listas de tareas, el texto del resumen, lectura del clima, elección de voz, copia de seguridad |
-| `android/` (25) | Con un Android simulado (Robolectric): base de datos y acciones, lo que queda programado en AlarmManager, la alarma de principio a fin (suena → habla → *I'm up* / *Snooze*) y un recorrido por las pantallas |
+| `logic/` (114) | Próxima alarma, repeticiones, intenciones, rachas y porcentajes, listas de tareas, el texto del resumen, lectura del clima, elección de voz, check-ins, copia de seguridad |
+| `android/` (38) | Con un Android simulado (Robolectric): base de datos y acciones, lo que queda programado en AlarmManager, la alarma de principio a fin (suena → habla → *I'm up* / *Snooze*), los check-ins (se pulsan los botones de la notificación), la actualización de la base de datos sin perder datos, y un recorrido por las pantallas |
 
 Para guardar además una imagen de cada pantalla en `jarvis/build/screenshots/`,
 en la pestaña **Terminal**: `./gradlew :jarvis:testDebugUnitTest -Pscreenshots`
@@ -119,6 +143,7 @@ jarvis/src/main/java/com/jarvis/app/
     Briefing.kt                     El texto que JARVIS dice por la mañana
     Weather.kt                      Direcciones y lectura de Open-Meteo
     Voices.kt                       Elegir la voz grave y masculina
+    CheckIns.kt                     Qué hábitos preguntar en cada check-in y cómo
     Days.kt, Formats.kt, Notes.kt, DayProgress.kt
   data/                           Base de datos Room, ajustes, clima, copia
     Entities.kt, Daos.kt            Tablas y consultas
@@ -133,6 +158,7 @@ jarvis/src/main/java/com/jarvis/app/
     BriefingLoader.kt               Junta clima + rutina + tareas + hábitos de hoy
     AlarmReceiver.kt, BootReceiver.kt, AlarmState.kt
   reminders/                      Recordatorios de tareas y hábitos (notificaciones)
+    CheckIns.kt                     Las preguntas del día y sus botones (Yes / Not today / Later)
   ui/                             Pantallas (Compose)
     JarvisRoot.kt                   Navegación: pestañas y editores
     TodayScreen.kt, TasksScreen.kt, TaskEditor.kt, HabitsScreen.kt, HabitEditor.kt,
@@ -165,6 +191,7 @@ No pide ubicación, micrófono, cámara ni contactos.
 | Fase | Qué incluye | Estado |
 |---|---|---|
 | 1 | Tareas, hábitos, rutina, alarma con voz y clima, recordatorios, copia de seguridad | ✅ Hecho (falta probar en el celular) |
+| 1.1 | Check-ins: JARVIS pregunta por tus hábitos durante el día y respondes desde la notificación | ✅ Hecho (v0.2) |
 | 2 | Notas tipo segundo cerebro (bandeja + PARA + búsqueda) | ✅ Básico hecho |
 | 3 | Capa "Jarvis" con IA: chat con Claude que lee y edita tus datos, por voz | Pendiente (requiere una API key tuya) |
 | — | Ideas: recordatorios de agua cada X horas, widget, Google Calendar en el resumen | Pendiente |

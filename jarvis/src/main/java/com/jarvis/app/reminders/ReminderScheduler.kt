@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import com.jarvis.app.data.AppGraph
+import com.jarvis.app.logic.CheckInLogic
 import com.jarvis.app.logic.HabitReminders
 import com.jarvis.app.logic.HabitStats
 import com.jarvis.app.logic.TaskLists
@@ -23,13 +24,14 @@ import java.time.ZoneId
  *
  * Estrategia simple y robusta: [sync] se llama despues de CUALQUIER cambio
  * (y al encender el celular) y deja programado exactamente lo que toca:
- * un aviso por cada tarea con recordatorio pendiente y por cada habito con
- * hora de aviso. Lo que ya no toca se cancela.
+ * un aviso por cada tarea con recordatorio pendiente, por cada habito con
+ * hora de aviso y por cada hora de check-in. Lo que ya no toca se cancela.
  */
 object ReminderScheduler {
     const val ACTION_REMIND = "com.jarvis.app.action.REMIND"
     const val KIND_TASK = "task"
     const val KIND_HABIT = "habit"
+    const val KIND_CHECKIN = "checkin"
 
     private const val PREFS = "reminders"
     private const val KEY_SCHEDULED = "scheduled"
@@ -62,6 +64,15 @@ object ReminderScheduler {
                 val doneToday = HabitStats.isDone(checksToday[habit.id]?.count ?: 0, habit.target)
                 val at = HabitReminders.next(habit.days, minutes, doneToday, now) ?: continue
                 wanted["$KIND_HABIT/${habit.id}"] = at.atZone(zone).toInstant().toEpochMilli()
+            }
+
+            // Rondas de check-in: una alarma por cada hora elegida ("checkin/720" = 12:00).
+            val settings = AppGraph.settings.value
+            if (settings.checkInsEnabled && settings.setupDone) {
+                for (minutes in CheckInLogic.normalize(settings.checkInTimes)) {
+                    val at = CheckInLogic.nextOccurrence(minutes, now)
+                    wanted["$KIND_CHECKIN/$minutes"] = at.atZone(zone).toInstant().toEpochMilli()
+                }
             }
 
             val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

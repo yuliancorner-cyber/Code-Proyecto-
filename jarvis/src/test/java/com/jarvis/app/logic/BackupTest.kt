@@ -25,7 +25,8 @@ class BackupTest {
             cityLat = 4.60971, cityLon = -74.08175, fahrenheit = false,
             alarmEnabled = true, alarmHour = 5, alarmMinute = 15, alarmDays = Days.WEEKDAYS,
             snoozeMinutes = 5, toneSeconds = 30, voiceEnabled = true, speechRate = 1.15f,
-            voicePitch = 0.65f, voiceName = "en-gb-x-rjs-local"
+            voicePitch = 0.65f, voiceName = "en-gb-x-rjs-local",
+            checkInsEnabled = false, checkInTimes = listOf(600, 1290)
         ),
         tasks = listOf(
             Task(
@@ -41,7 +42,8 @@ class BackupTest {
             Habit(
                 id = 4, name = "Water", emoji = "💧", behavior = "drink a glass", cue = Habit.CUE_STACK,
                 timeMinutes = 480, location = "kitchen", anchor = "I wake up", tinyVersion = "one sip",
-                days = Days.ALL, target = 8, unit = "glasses", reminderMinutes = 600, position = 3, archived = false
+                days = Days.ALL, target = 8, unit = "glasses", reminderMinutes = 600, position = 3, archived = false,
+                askInCheckIns = false
             ),
             Habit(id = 5, name = "Reading")
         ),

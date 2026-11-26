@@ -20,7 +20,8 @@ import java.time.LocalDate
 
 /**
  * Recibe tres tipos de aviso:
- *  - ACTION_REMIND: llego la hora de un recordatorio -> muestra la notificacion.
+ *  - ACTION_REMIND: llego la hora de un recordatorio -> muestra la notificacion
+ *    (o, si es una hora de check-in, empieza la ronda de preguntas).
  *  - ACTION_DONE:   tocaste "Done" en la notificacion -> marca la tarea/habito.
  *  - ACTION_SNOOZE: tocaste "Snooze" -> vuelve a avisar en 10 minutos.
  */
@@ -59,6 +60,7 @@ class ReminderReceiver : BroadcastReceiver() {
         val repo = AppGraph.repo
         val is24 = DateFormat.is24HourFormat(context)
         when (kind) {
+            ReminderScheduler.KIND_CHECKIN -> CheckIns.startRound(context, id.toInt())
             ReminderScheduler.KIND_TASK -> {
                 val task = repo.tasks.byId(id)
                 if (task != null && !task.done) notifyTask(context, key, task, is24)
@@ -121,9 +123,17 @@ class ReminderReceiver : BroadcastReceiver() {
         doneLabel: String
     ) {
         if (!Notifications.enabled(context)) return
+        // Con el celular bloqueado (si ocultas el contenido sensible) no se ve el titulo.
+        val public = NotificationCompat.Builder(context, Notifications.CHANNEL_REMINDERS)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(Notifications.ACCENT)
+            .setContentTitle("JARVIS reminder")
+            .build()
         val builder = NotificationCompat.Builder(context, Notifications.CHANNEL_REMINDERS)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(Notifications.ACCENT)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(public)
             .setContentTitle(title)
             .setContentText(summary)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)

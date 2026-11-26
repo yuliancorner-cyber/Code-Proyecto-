@@ -97,6 +97,11 @@
             android:name=".reminders.ReminderReceiver"
             android:exported="false" />
 
+        <!-- Recibe las respuestas a las preguntas de check-in (Yes / Not today / Later). -->
+        <receiver
+            android:name=".reminders.CheckInReceiver"
+            android:exported="false" />
+
         <!-- Al encender el celular (o cambiar la hora) Android borra las alarmas
              programadas: aqui se vuelven a programar. -->
         <receiver

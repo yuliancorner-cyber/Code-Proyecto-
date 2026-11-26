@@ -5,6 +5,7 @@ import androidx.room.withTransaction
 import com.jarvis.app.logic.HabitStats
 import com.jarvis.app.logic.Recurrence
 import com.jarvis.app.logic.Repeat
+import com.jarvis.app.reminders.CheckIns
 import com.jarvis.app.reminders.ReminderScheduler
 import java.time.LocalDate
 
@@ -114,12 +115,14 @@ class Repo(private val context: Context, private val db: AppDatabase) {
             habit.id
         }
         syncReminders()
+        CheckIns.refreshIfShowing(context)
         return id
     }
 
     suspend fun deleteHabit(id: Long) {
         habits.delete(id)
         syncReminders()
+        CheckIns.refreshIfShowing(context)
     }
 
     /** Sube ([delta] = -1) o baja (+1) un habito en la lista. */
@@ -132,10 +135,14 @@ class Repo(private val context: Context, private val db: AppDatabase) {
         habits.updateAll(list.mapIndexed { i, h -> h.copy(position = i) })
     }
 
-    /** Fija cuantas veces se hizo el habito ese dia (0 = casilla vacia). */
-    suspend fun setHabitCount(habitId: Long, date: Long, count: Int) {
+    /**
+     * Fija cuantas veces se hizo el habito ese dia (0 = casilla vacia).
+     * @param refreshCheckIn si hay una pregunta de check-in en pantalla, ponerla al dia.
+     */
+    suspend fun setHabitCount(habitId: Long, date: Long, count: Int, refreshCheckIn: Boolean = true) {
         if (count <= 0) habits.deleteCheck(habitId, date) else habits.putCheck(HabitCheck(habitId, date, count))
         syncReminders()
+        if (refreshCheckIn) CheckIns.refreshIfShowing(context)
     }
 
     /** Casilla: si estaba hecho lo vacia; si no, lo da por hecho (llega a la meta). */

@@ -13,10 +13,12 @@ import com.jarvis.app.R
 object Notifications {
     const val CHANNEL_ALARM = "alarm"
     const val CHANNEL_REMINDERS = "reminders"
+    const val CHANNEL_CHECKINS = "checkins"
 
     /** Id fijo de la notificacion de la alarma (solo hay una a la vez). */
     const val ID_ALARM = 1
     const val ID_MISSED_ALARM = 2
+    const val ID_CHECKIN = 3
 
     /** Color de acento de las notificaciones (cian). */
     const val ACCENT = 0xFF00E5FF.toInt()
@@ -50,8 +52,18 @@ object Notifications {
             enableVibration(true)
         }
 
+        val checkIns = NotificationChannel(
+            CHANNEL_CHECKINS,
+            context.getString(R.string.channel_checkins),
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = context.getString(R.string.channel_checkins_desc)
+            enableVibration(true)
+        }
+
         manager.createNotificationChannel(alarm)
         manager.createNotificationChannel(reminders)
+        manager.createNotificationChannel(checkIns)
     }
 
     fun enabled(context: Context): Boolean =

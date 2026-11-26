@@ -43,6 +43,8 @@ import com.jarvis.app.ui.components.JarvisCard
 import com.jarvis.app.ui.components.TimeDialog
 import com.jarvis.app.ui.components.ValueRow
 import com.jarvis.app.ui.components.is24Hour
+import com.jarvis.app.ui.components.launchAction
+import com.jarvis.app.reminders.ReminderScheduler
 import com.jarvis.app.ui.theme.Cyan
 import com.jarvis.app.ui.theme.Hairline
 import com.jarvis.app.ui.theme.TextPrimary
@@ -63,6 +65,7 @@ fun SetupScreen(settings: Settings) {
     fun finish() {
         AppGraph.settings.update { it.copy(userName = name.trim(), setupDone = true) }
         AlarmScheduler.schedule(context)
+        launchAction { ReminderScheduler.sync(context) }
     }
 
     // En Android 13+ las notificaciones se piden con un dialogo del sistema.
