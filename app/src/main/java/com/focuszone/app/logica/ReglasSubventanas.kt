@@ -80,6 +80,9 @@ object ReglasSubventanas {
     private val SELECCION_CHATS = listOf("direct_tab", "mensajes", "messages")
     private val CLASES_CHATS = listOf(".direct.")
 
+    /** Botones que abren la bandeja de mensajes (arriba en el inicio, o pestaña de abajo). */
+    val IDS_BOTON_MENSAJES = listOf("action_bar_inbox_button", "direct_tab", "inbox_tab")
+
     /** true si vale la pena mirar dentro de esta app (las demas se ignoran). */
     fun vigila(paquete: String): Boolean = paquete in PAQUETES_WHATSAPP || paquete == PAQUETE_INSTAGRAM
 
@@ -106,7 +109,7 @@ object ReglasSubventanas {
      */
     fun enChatsDeInstagram(vista: VistaApp): Boolean {
         if (vista.paquete != PAQUETE_INSTAGRAM) return false
-        if (coincide(Subventana.INSTAGRAM_REELS, vista) || coincide(Subventana.INSTAGRAM_HISTORIAS, vista)) return false
+        if (enVisorDeInstagram(vista)) return false
         val clase = vista.clase?.lowercase().orEmpty()
         val ids = vista.ids.map { it.lowercase() }
         val seleccionados = vista.seleccionados.map { it.trim().lowercase() }
@@ -136,6 +139,15 @@ object ReglasSubventanas {
             Subventana.INSTAGRAM_SOLO_CHATS -> !enChatsDeInstagram(vista)
         }
     }
+
+    /** true si estas viendo un reel o una historia a pantalla completa. */
+    fun enVisorDeInstagram(vista: VistaApp): Boolean =
+        vista.paquete == PAQUETE_INSTAGRAM &&
+            (coincide(Subventana.INSTAGRAM_REELS, vista) || coincide(Subventana.INSTAGRAM_HISTORIAS, vista))
+
+    /** El id del boton de mensajes visible en pantalla, o null si no hay. */
+    fun botonMensajes(vista: VistaApp): String? =
+        IDS_BOTON_MENSAJES.firstOrNull { it in vista.ids }
 
     /** Quita el prefijo "com.instagram.android:id/" de un id de Android. */
     fun idCorto(idCompleto: String): String = idCompleto.substringAfter(":id/")

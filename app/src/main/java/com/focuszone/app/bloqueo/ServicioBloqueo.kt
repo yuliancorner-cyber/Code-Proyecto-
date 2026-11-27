@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
@@ -16,6 +17,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.Toast
 import com.focuszone.app.MainActivity
 import com.focuszone.app.R
+import com.focuszone.app.logica.MotorSoloChats
 import com.focuszone.app.logica.ReglasSubventanas
 import com.focuszone.app.logica.Subventana
 import com.focuszone.app.logica.VistaApp
@@ -70,7 +72,14 @@ class ServicioBloqueo : AccessibilityService() {
          * WhatsApp e Instagram cambian la pantalla muchas veces por segundo (un
          * reel en marcha, por ejemplo): miramos como mucho una vez cada este rato.
          */
-        private const val RETRASO_ESCANEO_MS = 400L
+        private const val RETRASO_ESCANEO_MS = 200L
+
+        /**
+         * Con "solo chats", mientras estas en Instagram se mira la pantalla
+         * cada este rato aunque Instagram no avise de cambios (pasando reels,
+         * por ejemplo, a veces no avisa).
+         */
+        private const val INTERVALO_SOLO_CHATS_MS = 300L
 
         /** Tras sacarte de una seccion, no volver a mirar en este rato (la app aun se esta cerrando). */
         private const val PAUSA_TRAS_BLOQUEO_MS = 2_500L
@@ -86,15 +95,6 @@ class ServicioBloqueo : AccessibilityService() {
             "instagram://direct-inbox",
             "https://www.instagram.com/direct/inbox/"
         )
-
-        /**
-         * Si en este rato hubo que llevarte a los chats mas de [MAX_ENVIOS_A_CHATS]
-         * veces, algo falla (Instagram cambio y ya no reconocemos los chats, o el
-         * enlace no lleva a ellos): en vez de dar vueltas, FocusZone te muestra su
-         * pantalla de desbloqueo.
-         */
-        private const val VENTANA_ENVIOS_MS = 10_000L
-        private const val MAX_ENVIOS_A_CHATS = 3
 
         private val _funcionando = MutableStateFlow(false)
 
@@ -117,8 +117,28 @@ class ServicioBloqueo : AccessibilityService() {
 
     private var escaneoPendiente = false
     private var ultimoBloqueoSeccionMs = 0L
-    private var enviosAChats = 0
-    private var primerEnvioMs = 0L
+    private val motorSoloChats = MotorSoloChats()
+
+    /** Tapa Instagram fuera de los chats (ver CortinaSoloChats). */
+    private val cortina by lazy {
+        CortinaSoloChats(
+            servicio = this,
+            onIrAChats = { sinCaerse { paqueteActual?.let { volverAChats(it, MotorSoloChats.Redireccion.BOTON_MENSAJES) } } },
+            onDesbloquear = {
+                sinCaerse {
+                    dejarInstagram()
+                    SolicitudDesbloqueo.pedir(ReglasSubventanas.PAQUETE_INSTAGRAM, Subventana.INSTAGRAM_SOLO_CHATS)
+                    salirYMostrarFocusZone()
+                }
+            },
+            onSalir = {
+                sinCaerse {
+                    dejarInstagram()
+                    performGlobalAction(GLOBAL_ACTION_HOME)
+                }
+            }
+        )
+    }
 
     /** Al acabarse la ventana de desbloqueo: si sigues en una app bloqueada, te saca. */
     private val revisarAlExpirar = Runnable {
@@ -157,9 +177,13 @@ class ServicioBloqueo : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
         val paquete = event.packageName?.toString() ?: return
+        // Los avisos de la propia cortina no son "cambiaste de app".
+        if (paquete == packageName && cortina.visible) return
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
                 if (esVentanaDelSistema(paquete)) return
+                // Saliste de Instagram (inicio, otra app...): fuera cortina.
+                if (paquete != ReglasSubventanas.PAQUETE_INSTAGRAM) quitarCortina()
                 if (paquete != paqueteActual) claseActual = null
                 paqueteActual = paquete
                 // Los menus y dialogos tambien llegan aqui con clases como
@@ -247,10 +271,10 @@ class ServicioBloqueo : AccessibilityService() {
     // Secciones de WhatsApp e Instagram
     // ---------------------------------------------------------------------
 
-    private fun programarEscaneo() {
+    private fun programarEscaneo(retrasoMs: Long = RETRASO_ESCANEO_MS) {
         if (escaneoPendiente) return
         escaneoPendiente = true
-        manejador.postDelayed(escaneo, RETRASO_ESCANEO_MS)
+        manejador.postDelayed(escaneo, retrasoMs)
     }
 
     private fun escanearSecciones() {
@@ -259,7 +283,15 @@ class ServicioBloqueo : AccessibilityService() {
         // Si la app entera esta bloqueada, ya se encarga revisar().
         if (AppsBloqueadas.contiene(this, paquete)) return
         val activas = SeccionesBloqueadas.actuales(this).intersect(ReglasSubventanas.de(paquete))
-        if (activas.isEmpty()) return
+        if (activas.isEmpty()) {
+            quitarCortina()
+            return
+        }
+        // "Solo chats" incluye Reels e Historias: va por su cuenta.
+        if (Subventana.INSTAGRAM_SOLO_CHATS in activas) {
+            vigilarSoloChats(paquete)
+            return
+        }
         if (SystemClock.elapsedRealtime() - ultimoBloqueoSeccionMs < PAUSA_TRAS_BLOQUEO_MS) return
 
         val raiz = rootInActiveWindow ?: return
@@ -270,38 +302,106 @@ class ServicioBloqueo : AccessibilityService() {
         val vista = leerVista(raiz, paquete)
         val seccion = ReglasSubventanas.detectar(vista, activas)
         Diagnostico.anotar(describir(vista, seccion))
-        when {
-            seccion == null -> Unit
-            // Con "solo chats", cualquier cosa de Instagram (tambien un reel o
-            // una historia) te devuelve a los chats en vez de sacarte de la app.
-            Subventana.INSTAGRAM_SOLO_CHATS in activas -> soloChats(paquete)
-            else -> aplicarReglas(paquete, seccion)
+        if (seccion != null) aplicarReglas(paquete, seccion)
+    }
+
+    // ---------------------------------------------------------------------
+    // Instagram "solo chats"
+    // ---------------------------------------------------------------------
+
+    /**
+     * Mira la pantalla de Instagram y, si no estas en los chats, la tapa con
+     * la cortina e intenta llevarte a ellos. Se repite cada
+     * [INTERVALO_SOLO_CHATS_MS] mientras sigas en Instagram.
+     *
+     * Con desbloqueo activo, todo libre. Durante una sesion, los chats siguen
+     * permitidos (es lo unico que deja usar este modo).
+     */
+    private fun vigilarSoloChats(paquete: String) {
+        if (Desbloqueo.activo(this)) {
+            quitarCortina()
+            programarRevision()
+            return
+        }
+        // Pantalla apagada: no gastar bateria, y sin cortina (no debe tapar la
+        // pantalla de bloqueo). Al encenderla, Instagram vuelve a avisar de
+        // cambios y la vigilancia se reanuda sola.
+        if (!getSystemService(PowerManager::class.java).isInteractive) {
+            quitarCortina()
+            return
+        }
+        val raiz = rootInActiveWindow
+        if (raiz == null || raiz.packageName?.toString() != paquete) {
+            // Instagram aun no esta en primer plano (o se esta abriendo): reintentar.
+            raiz?.let(::reciclar)
+            programarEscaneo(INTERVALO_SOLO_CHATS_MS)
+            return
+        }
+        val vista = leerVista(raiz, paquete)
+        val enChats = ReglasSubventanas.enChatsDeInstagram(vista)
+        Diagnostico.anotar(describir(vista, if (enChats) null else Subventana.INSTAGRAM_SOLO_CHATS))
+
+        val accion = motorSoloChats.evaluar(
+            enChats = enChats,
+            enVisor = ReglasSubventanas.enVisorDeInstagram(vista),
+            hayBotonMensajes = ReglasSubventanas.botonMensajes(vista) != null,
+            ahoraMs = SystemClock.elapsedRealtime()
+        )
+        when (accion) {
+            MotorSoloChats.Accion.Nada -> Unit
+            MotorSoloChats.Accion.QuitarCortina -> cortina.ocultar()
+            is MotorSoloChats.Accion.Cubrir -> {
+                if (!cortina.mostrar()) {
+                    // Plan B si Android no deja poner la cortina: te saca como las demas secciones.
+                    aplicarReglas(paquete, Subventana.INSTAGRAM_SOLO_CHATS)
+                    return
+                }
+                accion.redireccion?.let { volverAChats(paquete, it) }
+            }
+        }
+        programarEscaneo(INTERVALO_SOLO_CHATS_MS)
+    }
+
+    private fun volverAChats(paquete: String, forma: MotorSoloChats.Redireccion) {
+        when (forma) {
+            MotorSoloChats.Redireccion.ATRAS -> performGlobalAction(GLOBAL_ACTION_BACK)
+            MotorSoloChats.Redireccion.ENLACE -> abrirChatsDeInstagram(paquete)
+            MotorSoloChats.Redireccion.BOTON_MENSAJES ->
+                if (!tocarBotonMensajes(paquete)) abrirChatsDeInstagram(paquete)
         }
     }
 
     /**
-     * Instagram "solo chats": si tienes desbloqueo activo, todo libre; si no,
-     * te lleva a la bandeja de mensajes (tambien durante una sesion: los chats
-     * siguen permitidos).
+     * Toca el boton de mensajes de Instagram, como si lo hicieras tu.
+     * false si no se encontro en pantalla.
      */
-    private fun soloChats(paquete: String) {
-        if (Desbloqueo.activo(this)) {
-            programarRevision()
-            return
+    private fun tocarBotonMensajes(paquete: String): Boolean {
+        val raiz = rootInActiveWindow ?: return false
+        try {
+            for (id in ReglasSubventanas.IDS_BOTON_MENSAJES) {
+                val encontrados = raiz.findAccessibilityNodeInfosByViewId("$paquete:id/$id")
+                for (nodo in encontrados) {
+                    // A veces el que reacciona al toque es el "padre" del icono.
+                    var actual: AccessibilityNodeInfo? = nodo
+                    while (actual != null && !actual.isClickable) actual = actual.parent
+                    if (actual?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true) return true
+                }
+            }
+            return false
+        } finally {
+            reciclar(raiz)
         }
-        val ahora = SystemClock.elapsedRealtime()
-        if (ahora - primerEnvioMs > VENTANA_ENVIOS_MS) {
-            primerEnvioMs = ahora
-            enviosAChats = 0
-        }
-        enviosAChats++
-        ultimoBloqueoSeccionMs = ahora
-        if (enviosAChats > MAX_ENVIOS_A_CHATS || !abrirChatsDeInstagram(paquete)) {
-            // Plan B: lo mismo que las demas secciones (te saca y FocusZone ofrece desbloquear).
-            aplicarReglas(paquete, Subventana.INSTAGRAM_SOLO_CHATS)
-            return
-        }
-        avisar(getString(R.string.solo_chats_aviso))
+    }
+
+    private fun quitarCortina() {
+        motorSoloChats.reiniciar()
+        if (cortina.visible) cortina.ocultar()
+    }
+
+    /** Al salir de Instagram desde la cortina: deja de vigilar ya, sin esperar al aviso de Android. */
+    private fun dejarInstagram() {
+        paqueteActual = null
+        quitarCortina()
     }
 
     /** Abre la bandeja de mensajes de Instagram. false si ningun enlace funciono. */
@@ -415,11 +515,13 @@ class ServicioBloqueo : AccessibilityService() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         _funcionando.value = false
+        quitarCortina()
         return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
         _funcionando.value = false
+        quitarCortina()
         manejador.removeCallbacksAndMessages(null)
         super.onDestroy()
     }

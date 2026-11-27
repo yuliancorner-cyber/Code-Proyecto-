@@ -12,7 +12,7 @@ pierdes la recompensa. Al completar la sesión ganas créditos de "tiempo de pan
 
 ---
 
-## Estado actual: versión 1.2 (secciones + Instagram solo chats)
+## Estado actual: versión 1.2.1 (secciones + Instagram solo chats con cortina)
 
 Se puede usar a diario: eliges una meta, dejas el celular boca abajo, corre el
 cronómetro, y si lo levantas antes de tiempo te avisa y pierdes la recompensa.
@@ -244,15 +244,17 @@ Cómo probarlo:
 4. Desbloquea 5 min con saldo: todo queda libre ese rato.
 
 **Instagram: solo chats (v1.2).** Con esta casilla solo puedes usar los mensajes
-directos. Al abrir Instagram, o al tocar Inicio, Reels, una historia o un perfil,
-FocusZone te lleva a tu bandeja de mensajes con el aviso *"Instagram: solo chats"*.
-Un reel que te manden por chat tampoco se abre. Funciona también durante una
-sesión. Para usar Instagram completo, toca **Desbloquear** junto a tu saldo en el
-inicio de FocusZone y elige los minutos.
+directos. Desde la v1.2.1, en cuanto sales de los chats (inicio, Reels, una
+historia, un perfil, un reel que te mandaron) una **cortina** de FocusZone tapa
+Instagram al instante y, detrás, FocusZone toca él mismo el botón de mensajes
+para devolverte a los chats (si no puede, prueba el enlace a la bandeja y luego
+"atrás"). Mientras estás en Instagram revisa la pantalla unas 3 veces por
+segundo. La cortina tiene tres botones: *Ir a mis chats*, *Desbloquear con saldo*
+y *Salir de Instagram*. Funciona también durante una sesión. Para usar Instagram
+completo hace falta saldo, que solo se gana estudiando.
 
-Si Instagram cambia y FocusZone ya no reconoce los chats (o no logra abrirlos), en
-vez de dar vueltas sin parar te saca de la app como las demás secciones: revisa el
-diagnóstico y avísame.
+Si Instagram cambia y FocusZone ya no reconoce los chats, la cortina tapará
+también los chats: revisa el diagnóstico y avísame.
 
 Cómo probarlo: marca *Instagram: solo chats*, abre Instagram → debe abrir directo
 en los mensajes. Entra a un chat y escribe: no pasa nada. Toca Inicio o Reels →
@@ -273,9 +275,9 @@ Sin esto, HyperOS puede cortar la sesión o apagar el servicio de bloqueo.
 
 ### Pruebas automáticas
 
-La lógica de sesión, saldo, estadísticas y secciones tiene 67 pruebas que corren en el PC sin celular. En Android
+La lógica de sesión, saldo, estadísticas y secciones tiene 74 pruebas que corren en el PC sin celular. En Android
 Studio: panel izquierdo › `app/java/com.focuszone.app (test)/logica` › clic
-derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 67 en verde.
+derecho sobre la carpeta › **Run 'Tests in logica'**. Deben salir 74 en verde.
 
 ### Si la detección es demasiado sensible (o poco)
 
@@ -303,6 +305,7 @@ app/src/main/java/com/focuszone/app/
     ReglasClave.kt             PIN: validar, hash PBKDF2 y esperas tras fallos
     ReglasGuardian.kt          Cuándo considerar caído el bloqueo y cuándo avisar
     ReglasSubventanas.kt       Reconoce Novedades (WhatsApp), Historias, Reels y chats (Instagram)
+    MotorSoloChats.kt          "Solo chats": cuándo tapar Instagram y cómo volver a los chats
     EstadoSesion.kt            Los 6 estados posibles de una sesión
     DetectorPosicion.kt        Acelerómetro → "boca abajo y quieto"
     MotorSesion.kt             Máquina de estados: arranque, alerta, cancelación, meta
@@ -320,6 +323,7 @@ app/src/main/java/com/focuszone/app/
     AppsBloqueadas.kt          Tu lista de apps distractoras (guardada en el celular)
     SeccionesBloqueadas.kt     Secciones marcadas (Novedades, Historias, Reels)
     Diagnostico.kt             Lo último que el servicio vio en WhatsApp/Instagram
+    CortinaSoloChats.kt        Pantalla que tapa Instagram fuera de los chats
     AppsInstaladas.kt          Lee las apps del menú; sugeridas y nunca-bloqueables
     ModoSilencio.kt            Activa/restaura No molestar sin pisar tu configuración
     PermisosBloqueo.kt         Comprueba y abre los ajustes de los permisos especiales

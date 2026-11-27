@@ -152,4 +152,14 @@ class ReglasSubventanasTest {
         assertNull(ReglasSubventanas.detectar(v, soloChats))
         assertFalse(ReglasSubventanas.enChatsDeInstagram(v))
     }
+
+    @Test
+    fun visorYBotonDeMensajes() {
+        val reel = vista("com.instagram.android", ids = setOf("clips_viewer_view_pager"))
+        assertTrue(ReglasSubventanas.enVisorDeInstagram(reel))
+        val inicio = vista("com.instagram.android", ids = setOf("action_bar_inbox_button", "feed_tab"))
+        assertFalse(ReglasSubventanas.enVisorDeInstagram(inicio))
+        assertEquals("action_bar_inbox_button", ReglasSubventanas.botonMensajes(inicio))
+        assertNull(ReglasSubventanas.botonMensajes(reel))
+    }
 }

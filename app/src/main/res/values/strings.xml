@@ -159,7 +159,11 @@
     <string name="seccion_instagram_reels">Reels de Instagram</string>
     <string name="seccion_instagram_reels_desc">La pestaña Reels y los reels que abras desde el inicio o un chat</string>
     <string name="seccion_instagram_solo_chats">Instagram: solo chats</string>
-    <string name="seccion_instagram_solo_chats_desc">Solo puedes usar los mensajes directos. Inicio, Reels, Historias, buscar y perfiles te devuelven a tus chats. Para usarlo completo, toca «Desbloquear» en el inicio de FocusZone.</string>
+    <string name="seccion_instagram_solo_chats_desc">Solo puedes usar los mensajes directos. Fuera de ellos (inicio, Reels, Historias, perfiles) una pantalla de FocusZone tapa Instagram y te lleva a tus chats. El resto solo se abre con el saldo que ganas estudiando.</string>
+    <string name="cortina_texto">Aquí solo puedes usar tus mensajes. Para ver el resto de Instagram, estudia y desbloquéalo con tu saldo.</string>
+    <string name="cortina_ir_a_chats">Ir a mis chats</string>
+    <string name="cortina_desbloquear">Desbloquear con saldo</string>
+    <string name="cortina_salir">Salir de Instagram</string>
     <string name="solo_chats_aviso">Instagram: solo chats</string>
     <string name="boton_desbloquear">Desbloquear</string>
     <string name="desbloqueo_titulo_manual">Desbloquear tus apps</string>
